@@ -1,0 +1,1632 @@
+Has VBA: True
+--- MODULE: ThisWorkbook.cls ---
+Attribute VB_Name = "ThisWorkbook"
+Attribute VB_Base = "0{00020819-0000-0000-C000-000000000046}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = True
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = True
+
+Private Sub Workbook_Deactivate()
+
+End Sub
+
+Private Sub Workbook_Open()
+    Dim result As String
+    Dim userlogin As String
+   ' userlogin = Environ("USERNAME")
+    'If StrComp(userlogin, "") = 0 Then
+    'Else
+    '    If StrComp(userlogin, "") = 0 Then
+    '    Else
+    '        If StrComp(userlogin, "") = 0 Then
+    '
+    '    End If
+    'End If
+    
+  
+   Excel.Application.Visible = False
+   result = Initialisation()
+'Fmessage.Visible = False
+    UFSelection.Show
+End Sub
+
+
+--- MODULE: UFSelection.frm ---
+Attribute VB_Name = "UFSelection"
+Attribute VB_Base = "0{092C0090-A0A9-4D05-8314-096A7F63B108}{554A826A-4C1B-4C14-B4CE-0D9C6C5536F1}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+
+Private Sub Annuler_Click()
+    ActiveWorkbook.Close True
+    Application.Quit
+    
+End Sub
+
+Private Sub BFusion_Click()
+    
+    'Dim wbnew As Workbook
+    'Set wbnew = Workbooks.Add
+    'wbnew.SaveAs "C:\Users\teddy.clot\Documents\MULTIREQUETEv1.7_22\RESULTAT\result"
+    
+    Dim cheminFichier, fichier, NouvNom As String
+    Dim entete_trouve As Boolean
+    Dim entete As String
+    Dim numLigneLu, numLigneNew As Integer
+    Dim xlApp, WbLu As Variant
+    Dim wbnew As Workbook
+    Dim xlSheet As Worksheet
+    
+    Dim chemin, texte, nameg, mag, grappe As String
+    Dim n, nn As Long
+    Dim x, debmag, midmag, endmag As Integer
+    Dim a()
+    nameg = "t"
+    numLigneLu = 1
+    numLigneNew = 1
+    cheminFichier = ThisWorkbook.Path & "\RESULTAT\"
+    entete_trouve = False
+    
+    'fichier = Dir(cheminFichier & "*.csv")
+    'Application.DisplayAlerts = False
+   ' Application.ScreenUpdating = False
+   
+
+
+
+    
+
+    chemin = cheminFichier
+    fichier = Dir(chemin)
+    
+    ReDim a(1 To Rows.Count, 1 To 1)
+    While fichier <> ""
+    
+        If Right(fichier, 4) = ".csv" Then
+            If nameg = "t" Then nameg = Left(fichier, Len(fichier) - 12)
+            
+            
+            
+            n = n + 1
+            x = FreeFile
+            Open chemin & fichier For Input As x 'accès en lecture séquentielle
+            
+            Line Input #x, texte
+            If nn = 0 Then nn = 1: a(1, 1) = "Grappe;Numero Mag;" & texte  'récupère la ligne de titre
+            
+
+            While Not EOF(1) 'EndOfFile : fin du fichier
+                nn = nn + 1
+                Line Input #x, texte 'récupère la ligne
+                debmag = InStr(1, fichier, ".")
+                midmag = InStr(debmag + 1, fichier, ".")
+                endmag = InStr(midmag + 1, fichier, ".")
+                
+                grappe = Mid(fichier, debmag + 1, midmag - 1 - debmag)
+                mag = Mid(fichier, midmag + 1, endmag - 1 - midmag)
+                
+                a(nn, 1) = grappe & ";" & mag & ";" & texte
+            Wend
+            
+            Close #x
+        End If
+        
+        fichier = Dir
+    Wend
+    
+    NouvNom = "resultat_global_" & nameg & ".xlsx"
+    
+  
+    'On créer l'objet Excel
+    Set xlApp = CreateObject("Excel.Application")
+    'On défini le nombre d'onglets (ici 5)
+    xlApp.SheetsInNewWorkbook = 1
+    'On ajoute un classeur
+    Set wbnew = xlApp.Workbooks.Add
+    'On donne un nom au classeur
+    wbnew.SaveAs (cheminFichier & NouvNom)
+    'On rend le classeur visible
+    xlApp.Visible = True
+    'On créer l'objet onglet dans le nouveau classeur créé
+    Set xlSheet = wbnew.Worksheets(1)
+    'On affecte un nom aux l'onglets
+    xlSheet.Name = "Global"
+    wbnew.Save
+    wbnew.Close
+
+    Set wbnew = Workbooks.Open(cheminFichier & NouvNom)
+    
+
+'    '---restitution---
+    Application.ScreenUpdating = False
+    With wbnew.Worksheets("Global") 'CodeName, à adapter
+        .Cells.Clear 'RAZ
+        If nn Then
+            With .[A1].Resize(nn)
+                .Value = a
+                .TextToColumns [A1], xlDelimited, Semicolon:=True 'commande Convertir
+            End With
+            .Rows(1).Font.Bold = True 'gras
+            .Columns.AutoFit 'ajustement largeurs
+        End If
+        With .UsedRange: End With 'actualise les barres de défilement
+    End With
+    wbnew.Save
+    Application.ScreenUpdating = True
+    wbnew.Close
+    If n Then MsgBox n & " fichier" & IIf(n > 1, "s", "") & " CSV consolidé" & IIf(n > 1, "s...", "...")
+    
+    
+
+    
+End Sub
+
+
+
+'Dim cmd As String
+'Dim resultat As String
+
+
+ 'cmd = ThisWorkbook.Path & "\BAT_BOT\fusion.bat"
+ 'D = Shell(cmd)
+' ID = Shell("cmd /c attrib -h  type " & ThisWorkbook.Path & "\resultat\*.csv > " & ThisWorkbook.Path & "\resultat\resultat_global.csv")
+ 'MsgBox ("cmd /c attrib -h  type " & ThisWorkbook.Path & "\resultat\*.csv > " & ThisWorkbook.Path & "\resultat\resultat_global.csv")
+ 'Call FUSION
+ 
+ 
+  'repSchedule = ThisWorkbook.Path & "\BAT_BOT\"
+  'repResult = ThisWorkbook.Path & "\RESULTAT\"
+  'fichierFusion = repSchedule & "fusion.bat"
+  'fichierResult = repResult & "resultat_global.txt"
+  'retval = Shell(fichierFusion, vbHide)
+  
+  
+ ' Set Wbnew = Workbooks.Open(fichierResult)
+
+  
+ ' ActiveWorkbook.SaveAs Filename:= _
+  '  ThisWorkbook.Path & "\tramecsv.csv", FileFormat:=xlCSV, _
+  '  CreateBackup:=False
+  
+  'End Sub
+  
+
+    
+    
+
+
+
+Private Sub BGENERER_Click()
+ execbat = lancer_script(False, "")
+End Sub
+
+Private Sub BKILL_Click()
+    If (ID <> 0) Then
+        Shell ("TASKKILL /PID " & ID & " /T /F")
+        UFSelection.MousePointer = fmMousePointerDefault
+        UFSelection.Fmessage.Visible = False
+        MsgBox ("Tache arretee avec succes")
+    Else
+        MsgBox ("Hop hop hop on essaie de killer alors qu'on n'a rien lancé !!")
+    End If
+End Sub
+
+Private Sub BPLANIF_Click()
+    Dim fichierLog, recept, repOutil, repSchedulefichierSchedule, execbat As String
+    If UFSelection.CRequete.Value = "" Then
+        MsgBox ("vous n'avez selectionné de requete à planifier")
+    Else
+        repSchedule = ThisWorkbook.Path & "\BAT_BOT\"
+        repOutil = ThisWorkbook.Path & "\outils\"
+        fichierSchedule = repSchedule & "schedule.bat"
+        fichierLog = "message.txt"
+        sender = "pop-mosaic-shop@auchan.com"
+        recept = "mikemartel@partner.auchan.fr"
+        result = vider_repertoire(fichierSchedule, ThisWorkbook.Path & "\BAT_BOT\")
+        UFTaskParam.Show
+     End If
+    'MsgBox "Opération terminé, consulter le repertoire BAT et SCRIPT"
+
+End Sub
+
+Private Sub BtransXLS_Click()
+Dim chemin, fichier As String
+chemin = ThisWorkbook.Path & "\A_TRAITER\"
+fichier = Dir(chemin & "*.*")
+
+ Do While fichier <> ""
+    fichier = Dir
+    Call convert_CsvXls(chemin, fichier)
+Loop
+    
+End Sub
+
+Private Sub BValider_Click()
+    Dim execbat As String
+    execbat = lancer_script(True, "")
+   
+End Sub
+
+Private Sub BVisuPlanif_Click()
+    UFPLANIF.Show
+End Sub
+
+Private Sub CheckCommit_Click()
+ Dim i As Integer
+ Dim sortie As Boolean
+ i = 0
+ sortie = False
+ 
+ If CheckCommit.Value = True Then
+    Password = InputBox("Mot de Passe")
+    While StrComp(Password, PWD) <> 0 And sortie = False And Password <> ""
+        i = i + 1
+        Password = InputBox("Mot de Passe")
+        If i = 4 Then
+            sortie = True
+            Excel.Application.Quit
+        End If
+    Wend
+    If Password <> "" Then
+        commit = True
+    Else
+        CheckCommit.Value = False
+        commit = False
+    End If
+ End If
+End Sub
+
+Private Sub CheckFeuille_Click()
+ If CheckFeuille.Value = True Then
+    Excel.Application.Visible = True
+ Else
+  Excel.Application.Visible = False
+ End If
+End Sub
+
+Private Sub Frame2_Click()
+
+End Sub
+
+Private Sub Frame1_Click()
+
+End Sub
+
+Private Sub CheckLancer_Click()
+
+End Sub
+
+Private Sub IMPORTER_Click()
+Dim NbMag As Integer
+Dim codeMag As Integer
+Dim resultat As String
+Dim cheminFichier As String
+NbMag = 1
+codeMag = 38
+resultat = "test"
+
+ Excel.Application.Visible = True
+       UFSelection.Show
+result = Importer_donnes_SQL(NbMag, codeMag, resultat, cheminFichier)
+End Sub
+
+
+Private Sub CMail_Click()
+If CMail.Value = True Then
+    Lmail.Visible = True
+    Tmail.Visible = True
+Else
+    Lmail.Visible = False
+    Tmail.Visible = False
+End If
+End Sub
+
+Private Sub Label4_Click()
+
+End Sub
+
+Private Sub CRequete_Change()
+
+End Sub
+
+Private Sub FSelection_Click()
+
+End Sub
+
+Private Sub GSelectAll_Click()
+    Set wbCourant = Workbooks.Open(ThisWorkbook.Path & "\PARAMETRAGE\" & fichierParam)
+    nbligGrappe = wbCourant.Sheets("Grappes").Range("A65535").End(xlUp).Row
+
+    For boucle = 1 To nbligGrappe - 1
+        UFSelection.LGrappe.Selected(boucle) = True
+    Next boucle
+End Sub
+
+Private Sub LGrappe_Click()
+    LMagasin.Clear
+End Sub
+
+Private Sub LMagasin_Click()
+    LGrappe.Clear
+End Sub
+
+Private Sub TextBox1_Change()
+
+End Sub
+
+Private Sub RefEdit1_BeforeDragOver(Cancel As Boolean, ByVal Data As MSForms.DataObject, ByVal x As stdole.OLE_XPOS_CONTAINER, ByVal Y As stdole.OLE_YPOS_CONTAINER, ByVal DragState As MSForms.fmDragState, Effect As MSForms.fmDropEffect, ByVal Shift As Integer)
+
+End Sub
+
+Private Sub MselectAll_Click()
+    Set wbCourant = Workbooks.Open(ThisWorkbook.Path & "\PARAMETRAGE\" & fichierParam)
+    nbligMag = wbCourant.Sheets("Liste magasin").Range("A65535").End(xlUp).Row
+    
+    For boucle = 1 To nbligMag - 1
+        UFSelection.LMagasin.Selected (boucle)
+    Next boucle
+End Sub
+
+Private Sub UserForm_BeforeDropOrPaste(ByVal Cancel As MSForms.ReturnBoolean, ByVal Control As MSForms.Control, ByVal Action As MSForms.fmAction, ByVal Data As MSForms.DataObject, ByVal x As Single, ByVal Y As Single, ByVal Effect As MSForms.ReturnEffect, ByVal Shift As Integer)
+
+End Sub
+
+Private Sub UserForm_Terminate()
+    ActiveWorkbook.Close True
+    'Application.Quit
+
+End Sub
+
+
+--- MODULE: UFPLANIF.frm ---
+Attribute VB_Name = "UFPLANIF"
+Attribute VB_Base = "0{1AB16915-C926-47FC-90C6-AE28C5F88B89}{54257735-86F6-4278-8D8D-5265EFFECDE3}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Private Sub Annuler_Click()
+    UFPLANIF.Hide
+End Sub
+
+Private Sub BSUPPRIMER_Click()
+ Dim repSchedulefichierSchedule, execbat, NOM_TASK As String
+    repSchedule = ThisWorkbook.Path & "\BAT_BOT\"
+    fichierSchedule = repSchedule & "schedule.bat"
+    result = vider_repertoire(repSchedule & "schedule.bat", repSchedule)
+    For i = 0 To UFPLANIF.LPlanif.ListCount - 1
+        If UFPLANIF.LPlanif.Selected(i) Then
+            NOM_TASK = UFPLANIF.LPlanif.List(i, 0)
+
+            Set oFS = CreateObject("Scripting.FileSystemObject")
+            Set MonFichierBat = oFS.CreateTextFile(fichierSchedule, ForWriting)
+            cmd = "schtasks /delete /TN " & NOM_TASK & " /F"
+            MonFichierBat.WriteLine (cmd)
+        End If
+    Next i
+    MonFichierBat.Close
+
+    retval = Shell(fichierSchedule, vbHide)
+
+    Call lire_result_AT
+End Sub
+
+Private Sub UserForm_Activate()
+  Sleep (1500)
+             
+  Call lire_result_AT
+End Sub
+
+
+
+--- MODULE: MODULE.bas ---
+Attribute VB_Name = "MODULE"
+Global nomfichier As String
+Global commit, erreur As Boolean
+Global Const PWD = "POPMOSAIC"
+Global TAB_MOIS(11) As String
+Global TAB_JOUR(7) As String
+Global ID
+Global Const fichierParam = "Tables de paramétrage.xls"
+Global Const VSLEEP = 2000
+Global SQLPLUS As String
+
+
+'Option Explicit
+'Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
+
+Function Supprimer_repertoire(ByVal repertoire)
+    ChDir repertoire    'change le répertoire courant
+    RmDir "DELETE"    'supprime le dossier DELETE dans le répertoire courant
+End Function
+
+Function creer_repertoire(ByVal repDest As String, ByVal nomRep As String) As Boolean
+    Dim mavariable As String
+    Dim error As Boolean
+    error = False
+        
+    If Dir(repDest & nomRep, vbDirectory) = "" Then
+       MkDir repDest & nomRep
+    Else
+        error = True
+    End If
+    creer_repertoire = error
+End Function
+
+Sub ExportARange()
+    Set RangeToExport = ActiveWindow.RangeSelection
+    If Application.CountA(RangeToExport) = 0 Then
+        MsgBox "The selection is empty."
+        Exit Sub
+    End If
+ 
+    Dim CSVFile As New CSVFileClass
+    On Error Resume Next
+    With CSVFile
+        .ExportRange = RangeToExport
+        .Export CSVFileName:=ThisWorkbook.Path & "\temp.csv"
+        If Err <> 0 Then MsgBox "Cannot export" & ThisWorkbook.Path & "\temp.csv"
+    End With
+End Sub
+ 
+Sub ImportAFile()
+    Dim CSVFile As New CSVFileClass
+    On Error Resume Next
+    With CSVFile
+        .ImportRange = ActiveCell
+        .Import CSVFileName:=ThisWorkbook.Path & "\temp.csv"
+        If Err <> 0 Then MsgBox "Cannot import " & ThisWorkbook.Path & "\temp.csv"
+    End With
+End Sub
+
+
+Sub FUSION()
+    Dim cheminFichier, fichier, NouvNom As String
+    Dim entete_trouve As Boolean
+    Dim entete As String
+    Dim numLigneLu, numLigneNew As Integer
+    Dim xlApp, WbLu As Variant
+    Dim wbnew As Workbook
+    Dim xlSheet As Worksheet
+    numLigneLu = 1
+    numLigneNew = 1
+    cheminFichier = ThisWorkbook.Path & "\RESULTAT\"
+    entete_trouve = False
+    
+    'fichier = Dir(cheminFichier & "*.csv")
+    'Application.DisplayAlerts = False
+   ' Application.ScreenUpdating = False
+    
+    NouvNom = "resultat_global.xls"
+  
+    
+    
+'    'On créer l'objet Excel
+'    Set xlApp = CreateObject("Excel.Application")
+'    'On défini le nombre d'onglets (ici 5)
+'    xlApp.SheetsInNewWorkbook = 1
+'    'On ajoute un classeur
+'    Set Wbnew = xlApp.Workbooks.Add
+'    'On donne un nom au classeur
+'    Wbnew.SaveAs (cheminFichier & NouvNom)
+'    'On rend le classeur visible
+'    xlApp.Visible = True
+'    'On créer l'objet onglet dans le nouveau classeur créé
+'    Set xlSheet = Wbnew.Worksheets(1)
+'    'On affecte un nom aux l'onglets
+'    xlSheet.Name = "Global"
+'    Wbnew.Save
+'    Wbnew.Close
+'
+'    Set Wbnew = Workbooks.Open(cheminFichier & NouvNom)
+'
+'    Do While fichier <> ""
+'        Set WbLu = Workbooks.Open(cheminFichier & fichier)
+'        numLigneLu = 1
+'
+'
+'        'Parcours des données du fichier lu
+'        While Not (WbLu.ActiveSheet.Range("A" & numLigneLu).Value = "" And WbLu.ActiveSheet.Range("A" & numLigneLu + 1).Value = "")
+'            If Not WbLu.ActiveSheet.Range("A" & numLigneLu).Value = "" And StrComp(Left(WbLu.ActiveSheet.Range("A" & numLigneLu).Value, 3), "---") <> 0 Then
+'                'si cest la premiere ligne trouver alors cest l'entete
+'                If entete_trouve = False Then
+'                  entete_trouve = True
+'                  entete = WbLu.Worksheets(1).Range("A" & numLigneLu).Value
+'                   Wbnew.Activate
+'                  WbLu.Worksheets(1).Rows(numLigneLu).Copy _
+'                  Destination:=Wbnew.Worksheets("Global").Cells(numLigneNew, 1)
+'                  numLigneNew = numLigneNew + 1
+'                Else
+'                   'si on retrouve la meme entete on supprime la ligne
+'                   If StrComp(entete, WbLu.ActiveSheet.Range("A" & numLigneLu).Value) <> 0 Then
+'                        Wbnew.Activate
+'                        WbLu.Worksheets(1).Rows(numLigneLu).Copy _
+'                        Destination:=Wbnew.Worksheets("Global").Cells(numLigneNew, 1)
+'                        Wbnew.Worksheets("Global").Cells(numLigneNew, 1).Value = Trim(Wbnew.Worksheets("Global").Cells(numLigneNew, 1).Value)
+'                        numLigneNew = numLigneNew + 1
+'                   End If
+'                End If
+'            End If
+'            numLigneLu = numLigneLu + 1
+'        Wend
+'          'Fermeture fichiers
+'        WbLu.Close True
+'        Set WbLu = Nothing
+'
+'        fichier = Dir
+'    Loop
+'
+'  '   With ActiveSheet
+'   '     For Lig = 1 To Range("A65536").End(xlUp).Row
+' '       'Changer la  , (virgule) par le séparateur de votre fichier
+'  '          TB = Split(.Cells(Lig, 1), ";")
+'  '          For k = 0 To UBound(TB)
+'  '              .Cells(Lig, k + 1) = Trim(TB(k))
+'  '          Next k
+'  '      Next Lig
+'  '  End With
+'    Wbnew.Save
+End Sub
+
+Sub convert_CsvXls(ByVal chemin As String, ByVal fichier As String)
+
+    Dim TB
+    Dim Lig As Long, k As Integer
+        
+    Application.DisplayAlerts = False
+    Application.ScreenUpdating = False
+    
+    NouvNom = Left(fichier, Len(fichier) - 3) & "xls"
+    'Application.DisplayAlerts = False
+    ActiveWorkbook.SaveAs chemin & NouvNom
+    Workbooks(NouvNom).Close savechanges:=False
+    Application.DisplayAlerts = True
+    
+    Set WbLu = Workbooks.Open(chemin & NouvNom)
+       
+    With ActiveSheet
+    
+        For Lig = 1 To Range("A65536").End(xlUp).Row
+        'Changer la  , (virgule) par le séparateur de votre fichier
+            TB = Split(.Cells(Lig, 1), ";")
+            For k = 0 To UBound(TB)
+                .Cells(Lig, k + 1) = Trim(TB(k))
+            Next k
+        Next Lig
+    End With
+    
+    ActiveWorkbook.Save
+    Application.DisplayAlerts = True
+    Application.ScreenUpdating = True
+
+End Sub
+
+Function vider_repertoire(ByVal fichierCible As String, ByVal repertoire As String)
+  Dim fichier As String
+  Dim fs, f As Variant
+  fichier = Dir(fichierCible)
+  Do While fichier <> ""
+    Set fs = CreateObject("Scripting.FileSystemObject")
+    Set f = fs.GetFile(repertoire & fichier)
+    f.Delete
+    fichier = Dir
+  Loop
+End Function
+
+Sub lire_result_AT()
+
+    Dim line_chaine, NumFichier As Variant
+    Dim TabAt(50, 4) As String
+    Dim nbre_lig, retval As Integer
+    Dim ETAT, ID, JOUR, HEURE, LIGNE_COMMANDE, CheminAT, fichierAT, fichierATBAT, ExistenceFichier, chaine As String
+    CheminAT = ThisWorkbook.Path & "\BAT_BOT\"
+    fichierAT = CheminAT & "task.txt"
+    fichierATBAT = CheminAT & "cmd_task.bat"
+    
+    
+    ChDir CheminAT
+    retval = Shell(fichierATBAT, vbHide)
+    Sleep (1000)
+    NumFichier = FreeFile
+    If ExistenceFichier = Dir(fichierAT) <> "" Then
+        nbre_lig = 0
+        UFPLANIF.LPlanif.Clear
+        UFPLANIF.LPlanif.ColumnCount = 4
+        Open fichierAT For Input As #NumFichier
+        Do While Not EOF(NumFichier)
+            Line Input #NumFichier, chaine
+            If chaine <> "" Then
+                line_chaine = Split(chaine, ",", -1, vbBinaryCompare)
+                
+                UFPLANIF.LPlanif.AddItem
+                UFPLANIF.LPlanif.List(UFPLANIF.LPlanif.ListCount - 1, 0) = line_chaine(0)
+                UFPLANIF.LPlanif.List(UFPLANIF.LPlanif.ListCount - 1, 1) = line_chaine(1)
+                UFPLANIF.LPlanif.List(UFPLANIF.LPlanif.ListCount - 1, 2) = line_chaine(2)
+               
+                nbre_lig = nbre_lig + 1
+            End If
+        Loop
+        Close #NumFichier
+        'UFPLANIF.LPlanif.AddItem line_entete
+      
+        
+     Else
+        MsgBox ("aucun resultat ramené ")
+     End If
+
+End Sub
+
+Function timerProcess(ByVal pauseTime As Integer)
+    Dim Start, Finish, TotalTime
+
+    pauseTime = 5    ' Définit la durée.
+    Start = Timer    ' Définit l'heure de début.
+    Do While Timer < Start + pauseTime
+        DoEvents    ' Donne le contrôle à d'autres processus.
+    Loop
+    Finish = Timer    ' Définit l'heure de fin.
+    TotalTime = Finish - Start    ' Calcule la durée totale.
+    
+End Function
+
+Function lancer_script(ByVal lancer As Boolean, nomTache As String) As String
+    Dim bascule, repOutil, repRes, result, Fnumgrappe, requete, codeMag, cheminrep, RepBat, cmd, liste_attach, message As String
+    Dim recept, sender, disque, execbat, cheminbat, requetefichier As String
+    Dim wbCourant As Workbook
+    Dim numLigneCourant, nbFichier, nbMagasin, nbMagasinM, nbMagasinG As Integer
+    Dim oFSO, oFl, oFS
+    Dim ExisteFichier, Sortir As Boolean
+    Dim lignecommande()
+    Set oFSO = CreateObject("Scripting.FileSystemObject")
+    disque = oFSO.GetDriveName(ThisWorkbook.Path)
+    erreur = False
+    ExisteFichier = False
+    Sortir = False
+    execbat = ""
+     nomfichier = UFSelection.txt_nomfic.Value
+     nomfichier = Replace(nomfichier, " ", vbNullString)
+     
+     
+     
+    
+    Set wbCourant = Workbooks.Open(ThisWorkbook.Path & "\PARAMETRAGE\" & fichierParam)
+    requetefichier = UFSelection.CRequete.Value
+    requete = Replace(requetefichier, " ", vbNullString)
+
+    ReDim lignecommande(UFSelection.LMagasin.ListCount - 1)
+
+
+    Set oFS = CreateObject("Scripting.FileSystemObject")
+    ExisteFichier = oFS.FileExists(cheminbat & nomTache & ".bat")
+
+    If ExisteFichier And lancer = False Then
+        result = MsgBox("Une tache planifier existe déjà, voulez-vous continuer", vbYesNo)
+        If result = vbNo Then
+            Sortir = True
+        End If
+    End If
+
+    If UFSelection.CMail.Value = True And UFSelection.Tmail.Text = "" Then
+        MsgBox ("vous n'avez pas renseigner le ou les adresses mail")
+        Sortir = True
+    End If
+    If nomfichier = "" Then
+        MsgBox "Veuillez renseigner le nom du fichier"
+        Sortir = True
+    End If
+    If Len(requete) = 0 Then
+        MsgBox " pas de requete"
+        Sortir = True
+    End If
+    If (UFSelection.LMagasin.ListCount = 0 And UFSelection.LGrappe.ListCount = 0) Then
+        MsgBox "vous n'avez pas selectionné de grappe ou de magasin"
+    End If
+    If Sortir = False Then
+        If StrComp(nomTache, "") = 0 Then
+        nomTache = Mid(requete, 1, InStr(1, UCase(requete), ".", vbTextCompare) - 1)
+        End If
+        datenow = Format(Now, "ddmmyyyy_hhmmss")
+        message = "Ce message est un message d'information sur les recadrages ou controles planifiés. Veuillez ne pas répondre au mail. Merci"
+
+        cheminrep = ThisWorkbook.Path & "\RESULTAT\"
+        chemintmp = ThisWorkbook.Path & "\TMP\"
+
+        result = vider_repertoire(cheminrep & "*.csv", cheminrep)
+        result = vider_repertoire(cheminrep & "*.log", cheminrep)
+        result = vider_repertoire(chemintmp & "*.*", chemintmp)
+        If lancer = True Then
+        RepBat = "\BAT\"
+        repRes = "..\..\RESULTAT\"
+        Else
+        RepBat = "\BAT_BOT\"
+        cheminrepbot = ThisWorkbook.Path & RepBat & "RESULTAT\"
+        cheminRepBotRes = ThisWorkbook.Path & RepBat & "RESULTAT\" & nomTache & "\"
+        erreur = creer_repertoire(cheminrepbot, nomTache)
+        repRes = "..\RESULTAT\" & nomTache & "\"
+        End If
+        cheminbat = ThisWorkbook.Path & RepBat
+        cheminAff = ThisWorkbook.Path & "\RESULTAT\"
+        repOutil = ThisWorkbook.Path & "\outils\"
+        cheminScript = cheminbat & "SCRIPT\"
+
+       result = vider_repertoire(cheminbat & nomTache & ".bat", cheminbat)
+       result = vider_repertoire(cheminScript & nomTache & "*.sql", cheminScript)
+       Set MonFichierBat = oFS.CreateTextFile(cheminbat & nomTache & ".bat", ForWriting)
+       MonFichierBat.WriteLine (disque)
+       MonFichierBat.WriteLine ("cd " & cheminScript)
+       If lancer = False Then MonFichierBat.WriteLine ("del /Q " & cheminRepBotRes & " *.csv")
+       nbMagasinM = 0
+
+        If UFSelection.checkCSV.Value = True Then
+            NomFichierLog = nomTache & ".&2..&1..csv"
+        Else
+            NomFichierLog = nomTache & ".&2..&1..log"
+        End If
+
+
+       For i = 0 To UFSelection.LMagasin.ListCount - 1
+          If UFSelection.LMagasin.Selected(i) Then
+            codeMag = UFSelection.LMagasin.List(i)
+            numgrappe = UFSelection.LMagasin.List(i, 2)
+            numLigneCourant = 2
+
+            While Not wbCourant.Sheets("Grappes").Range("B" & numLigneCourant).Value = ""
+                Fnumgrappe = wbCourant.Sheets("Grappes").Range("B" & numLigneCourant).Value
+
+                If StrComp(Fnumgrappe, numgrappe) = 0 Then
+                    BD = wbCourant.Sheets("Grappes").Range("C" & numLigneCourant).Value
+                    extension = wbCourant.Sheets("Grappes").Range("A" & numLigneCourant).Value
+
+
+                     'MonFichierBat.WriteLine ("sqlplus " & extension & Format(codeMag, "000") & "/ATTENT1@" & BD & " @" & Chr(34) & requete & Chr(34) & "  " & Format(codeMag, "000") & " " & "G" & numgrappe)
+                     MonFichierBat.WriteLine ("Sql " & extension & Format(codeMag, "000") & "/ATTENT1@" & BD & " @" & Chr(34) & requete & Chr(34) & "  " & Format(codeMag, "000") & " " & "G" & numgrappe)
+                     lignecommande(nbMagasinM) = "Sql " & extension & Format(codeMag, "000") & "/ATTENT1@" & BD & " @" & Chr(34) & requete & Chr(34) & "  " & Format(codeMag, "000") & " " & "G" & numgrappe
+
+'                     Set MiniBat = oFS.CreateTextFile(cheminbat & nomTache & "." & extension & Format(codeMag, "000") & ".bat", ForWriting)
+'                    MiniBat.WriteLine ("sqlplus " & extension & Format(codeMag, "000") & "/ATTENT1@" & BD & " @" & Chr(34) & requete & Chr(34) & "  " & Format(codeMag, "000") & " " & "G" & numgrappe)
+'                    MiniBat.Close
+                     nbMagasinM = nbMagasinM + 1
+                End If
+                numLigneCourant = numLigneCourant + 1
+            Wend
+
+          End If
+        Next i
+        result = LireEcrireSql(RepBat, NomFichierLog, repRes, requetefichier, requete)
+
+        nbMagasinG = 0
+        For i = 0 To UFSelection.LGrappe.ListCount - 1
+            If UFSelection.LGrappe.Selected(i) Then
+              numgrappe = UFSelection.LGrappe.List(i, 0)
+
+              BD = wbCourant.Sheets("Grappes").Range("C" & i + 2).Value
+
+              'on recupere la liste des magasins de la grappes
+               numLigneCourant = 2
+              While Not wbCourant.Sheets("Grappes").Range("B" & numLigneCourant).Value = ""
+                 If StrComp(wbCourant.Sheets("Grappes").Range("B" & numLigneCourant).Value, numgrappe) = 0 Then
+                     extension = wbCourant.Sheets("Grappes").Range("A" & numLigneCourant).Value
+                 End If
+                 numLigneCourant = numLigneCourant + 1
+              Wend
+
+              numLigneCourant = 2
+              While Not wbCourant.Sheets("Liste magasin").Range("A" & numLigneCourant).Value = ""
+                  Fnumgrappe = wbCourant.Sheets("Liste magasin").Range("F" & numLigneCourant).Value
+                  bascule = wbCourant.Sheets("Liste magasin").Range("G" & numLigneCourant).Value
+
+                  If StrComp(Fnumgrappe, numgrappe) = 0 And StrComp(bascule, "X") = 0 Then
+
+                     codeMag = wbCourant.Sheets("Liste magasin").Range("A" & numLigneCourant).Value
+                     'MonFichierBat.WriteLine (SQLPLUS & " " & extension & Format(codeMag, "000") & "/ATTENT1@" & BD & " @" & Chr(34) & requete & Chr(34) & "  " & Format(codeMag, "000") & " " & "G" & numgrappe)
+                     MonFichierBat.WriteLine ("Sql " & " " & extension & Format(codeMag, "000") & "/ATTENT1@" & BD & " @" & Chr(34) & requete & Chr(34) & "  " & Format(codeMag, "000") & " " & "G" & numgrappe)
+                     lignecommande(nbMagasinG) = "Sql " & extension & Format(codeMag, "000") & "/ATTENT1@" & BD & " @" & Chr(34) & Chr(34) & requete & Chr(34) & Chr(34) & "  " & Format(codeMag, "000") & " " & "G" & numgrappe
+
+                   'MonFichierBat.WriteLine ("sqlplus " & extension & Format(codeMag, "000") & "/ATTENT1@" & BD & " @" & Chr(34) & requete & Chr(34) & "  " & Format(codeMag, "000") & " " & "G" & numgrappe)
+                    'MonFichierBat.WriteLine ("call " & cheminbat & nomTache & "." & extension & Format(codeMag, "000") & ".bat")
+'                    Set MiniBat = oFS.CreateTextFile(cheminbat & nomTache & "." & extension & Format(codeMag, "000") & ".bat", ForWriting)
+'                    MiniBat.WriteLine ("sqlplus " & extension & Format(codeMag, "000") & "/ATTENT1@" & BD & " @" & Chr(34) & requete & Chr(34) & "  " & Format(codeMag, "000") & " " & "G" & numgrappe)
+'                    MiniBat.Close
+                    nbMagasinG = nbMagasinG + 1
+                  End If
+                  numLigneCourant = numLigneCourant + 1
+              Wend
+
+            End If
+        Next i
+       ' wbCourant.Sheets("sqlplus").Range("A4") = i
+       ' wbCourant.Sheets("sqlplus").Range("A5") = numLigneCourant
+
+
+        result = LireEcrireSql(RepBat, NomFichierLog, repRes, requetefichier, requete)
+        nbMagasin = nbMagasinG + nbMagasinM
+       ' wbCourant.Sheets("sqlplus").Range("A6") = nbMagasin
+        If UFSelection.CMail.Value = True Then
+             MonFichierBat.WriteLine ("call " & Chr(34) & "..\control_fin.bat" & Chr(34) & " " & nbMagasin)
+             MonFichierBat.WriteLine (repOutil & "7-Zip\7z a " & cheminRepBotRes & nomTache & "_" & datenow & ".zip " & cheminRepBotRes & "*.* -r")
+             recept = UFSelection.Tmail.Text
+             sender = "pop-mosaic-shop@auchan.com"
+             MonFichierBat.WriteLine (repOutil & "BLAT\blat -install smtp.auchan.com " & sender & " 25")
+             MonFichierBat.WriteLine (repOutil & "BLAT\blat -body " & Chr(34) & message & Chr(34) & " -subject " & Chr(34) & "Rapport Planificateur [" & nomFichierSql & "]" & Chr(34) & " -to " & recept & " -attach " & Chr(34) & cheminRepBotRes & nomTache & "_" & datenow & ".zip" & Chr(34))
+        End If
+        MonFichierBat.Close
+
+        execbat = ThisWorkbook.Path & RepBat & nomTache & ".bat"
+        wbscript = ThisWorkbook.Path & "\BAT\SCRIPT"
+
+        If lancer = True Then
+
+
+
+           'wbCourant.Sheets("sqlplus").Range("C1") = wbscript
+           'wbscript = "C:\Users\teddy.clot\Documents\MULTIREQUETEv1.7_22\BAT\SCRIPT"
+           'wbCourant.Sheets("sqlplus").Range("C3") = wbscript
+           'MsgBox CurDir
+           ChDir (wbscript)
+
+           'MsgBox CurDir
+
+           For i = 0 To nbMagasin - 1
+           ID = Shell(lignecommande(i), vbHide)
+
+           Next i
+           'Call Shell("sql FRC4966/ATTENT1@GCFMTIPROD01.world @""testteddy.sql""  4966 G1", vbNormalFocus)
+           'sql FRC4966/ATTENT1@GCFMTIPROD01.world @"testteddy.sql"  4966 G1
+           nbFichier = VerificationNBfichier()
+           nbMagasin = nbMagasinM + nbMagasinG
+           UFSelection.MousePointer = fmMousePointerAppStarting
+           UFSelection.Fmessage.Visible = True
+
+
+           While nbFichier < nbMagasin
+                timerProcess (1)
+                nbFichier = VerificationNBfichier()
+           Wend
+
+           UFSelection.MousePointer = fmMousePointerDefault
+           UFSelection.Fmessage.Visible = False
+           MsgBox "Opération terminé, consulter le repertoire resultat"
+           If Dir(cheminAff, vbDirectory) <> "" Then
+             Shell "Explorer.exe /e," & cheminAff
+            Else
+                MsgBox "Répertoire : " & cheminAff & " inexistant."
+            End If
+         End If
+         wbCourant.Close
+         'wbCourant.Sheets("sqlplus").Range("B1") = lancer
+        ' wbCourant.Sheets("sqlplus").Range("B3") = execbat
+         lancer_script = execbat
+    End If
+
+End Function
+
+Function Initialisation()
+
+    Dim nbligMag, nbligGrappe, boucle, nbFichiers As Integer
+    Dim bascule, fichier, libMag, nummag, numgrappe, libGrappe, result, cheminrep, chemin, cheminSqlPlus As String
+    Dim wbCourant As Workbook
+    Dim debut As Integer
+    debut = 2
+    cheminrep = ThisWorkbook.Path & "\RESULTAT\"
+   
+    result = vider_repertoire(cheminrep & "*.csv", cheminrep)
+
+    result = vider_repertoire(cheminrep & "*.log", cheminrep)
+    
+    cheminrep = ThisWorkbook.Path & "\BAT\"
+    result = vider_repertoire(cheminrep & "*.bat", cheminrep)
+    cheminrep = ThisWorkbook.Path & "\BAT\SCRIPT\"
+    result = vider_repertoire(cheminrep & "*.sql", cheminrep)
+    
+    UFSelection.LMagasin.Clear
+    UFSelection.LGrappe.Clear
+    UFSelection.CRequete.Clear
+    Set wbCourant = Workbooks.Open(ThisWorkbook.Path & "\PARAMETRAGE\" & fichierParam)
+   ' Set wbCourant = ActiveWorkbook
+    nbligMag = wbCourant.Sheets("Liste magasin").Range("A65535").End(xlUp).Row
+    nbligGrappe = wbCourant.Sheets("Grappes").Range("A65535").End(xlUp).Row
+    UFSelection.LMagasin.ColumnCount = 3
+    UFSelection.LGrappe.ColumnCount = 2
+    chemin = ThisWorkbook.Path & "\REQUETES\"
+    cheminSqlPlus = wbCourant.Sheets("sqlplus").Range("A1").Value
+    SQLPLUS = cheminSqlPlus & "sqlplus"
+    For boucle = debut To nbligMag
+        libMag = wbCourant.Sheets("Liste magasin").Range("B" & boucle).Value
+        nummag = wbCourant.Sheets("Liste magasin").Range("A" & boucle).Value
+        numgrappe = wbCourant.Sheets("Liste magasin").Range("F" & boucle).Value
+        bascule = wbCourant.Sheets("Liste magasin").Range("G" & boucle).Value
+        If StrComp(bascule, "X") = 0 Then
+            UFSelection.LMagasin.AddItem
+            UFSelection.LMagasin.List(UFSelection.LMagasin.ListCount - 1, 2) = numgrappe
+            UFSelection.LMagasin.List(UFSelection.LMagasin.ListCount - 1, 1) = libMag
+           UFSelection.LMagasin.List(UFSelection.LMagasin.ListCount - 1, 0) = Format(nummag, "000")
+           
+        End If
+    Next boucle
+    debut = 2
+    
+    For boucle = debut To nbligGrappe
+        libGrappe = wbCourant.Sheets("Grappes").Range("D" & boucle).Value
+        numgrappe = wbCourant.Sheets("Grappes").Range("B" & boucle).Value
+       
+        UFSelection.LGrappe.AddItem
+        UFSelection.LGrappe.List(UFSelection.LGrappe.ListCount - 1, 1) = libGrappe
+        UFSelection.LGrappe.List(UFSelection.LGrappe.ListCount - 1, 0) = numgrappe
+        
+    Next boucle
+    fichier = Dir(chemin & "*.sql")
+    
+    nbFichiers = 1
+            
+    'Parcours des fichiers xls à lire
+    Do While fichier <> ""
+        UFSelection.CRequete.AddItem fichier
+        fichier = Dir
+    Loop
+     wbCourant.Close
+     
+    'UFSelection.Show
+End Function
+
+Function VerificationNBfichier() As Integer
+    Dim directory As String
+    
+    directory = ThisWorkbook.Path & "\TMP\"
+    nbFichier = 0
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    Set fd = fso.GetFolder(directory)
+ 
+   ' With Application.FileSearch
+   ' .NewSearch
+   ' .LookIn = directory
+   ' .Filename = "*.*"
+    '.FileType = msoFileTypeAllFiles
+   ' .SearchSubFolders = False
+    '    If .Execute > 0 Then
+    '        nbFichier = .FoundFiles.Count
+    '    End If
+    'End With
+    ' VerificationNBfichier = nbFichier
+    
+    VerificationNBfichier = fd.Files.Count
+End Function
+
+Function LireEcrireSql(ByVal RepBat As String, ByVal NomFichierLog As String, ByVal repRes As String, ByVal NomFichierReq As String, ByVal nomFichierSql As String)
+    Dim fichier, repTmp, def As String
+    Dim ExisteFichier As Boolean
+    
+    Dim flag As Integer
+    
+    
+    flag = 0
+    
+
+    'If Not ExisteFichier Then
+     ChDir ThisWorkbook.Path & "\REQUETES\"
+     ' VERIFIER S IL Y A UNE REQUETE DE MODIFICATION/SUPPRESSION OU AJOUT
+     NumFichier = FreeFile
+    ' Open "C:\MOSAIC\MULTIREQUETE\REQUETES\" & NomFichierReq For Input As #NumFichier
+    repTmp = ThisWorkbook.Path & "\TMP\"
+     Open ThisWorkbook.Path & "\REQUETES\" & NomFichierReq For Input As #NumFichier
+     Do While Not EOF(NumFichier)
+        Line Input #NumFichier, chaine
+        If (LCase(chaine) Like "*update*" Or LCase(chaine) Like "*insert*" Or LCase(chaine) Like "*delete*" Or LCase(chaine) Like "*merge*") Then
+         flag = 1
+            If commit = False Then
+            MsgBox ("Vous n'etes pas autorisé a executer des requetes de modification,suppression ou ajout")
+            End
+         End If
+        End If
+     Loop
+     Close #NumFichier
+     
+     ' CREATION DU SCRIPT SQL
+     Set oFSR = CreateObject("Scripting.FileSystemObject")
+     fichier = ThisWorkbook.Path & RepBat & "SCRIPT\" & nomFichierSql
+     ExisteFichier = oFSR.FileExists(fichier)
+    If Not ExisteFichier Then
+        Set MonFichierReq = oFSR.CreateTextFile(fichier, ForWriting)
+        MonFichierReq.WriteLine ("spool " & repRes & NomFichierLog)
+        MonFichierReq.WriteLine ("whenever oserror exit rollback;")
+        MonFichierReq.WriteLine ("whenever sqlerror exit rollback;")
+        MonFichierReq.WriteLine ("SET pages 10000")
+        MonFichierReq.WriteLine ("SET LINES 500")
+        MonFichierReq.WriteLine ("SET LINESIZE 32767")
+        ' MonFichierReq.WriteLine ("SET pagesize 5000")
+        MonFichierReq.WriteLine ("SET serveroutput ON size 1000000")
+        MonFichierReq.WriteLine ("SET verify off")
+        MonFichierReq.WriteLine ("set TRIMSPOOL ON")
+        ' MonFichierReq.WriteLine ("set EMBEDDED OFF")
+        ' MonFichierReq.WriteLine ("set NEWP NONE")
+        ' MonFichierReq.WriteLine ("set PAGESIZE 0")
+        If flag = 0 Then
+            MonFichierReq.WriteLine ("set FEEDBACK OFF")
+            Else: MonFichierReq.WriteLine ("set FEEDBACK ON")
+            End If
+       
+        def = "SET SQLFORMAT DELIMITED ; " & Chr(34) & Chr(32) & Chr(34)
+        MonFichierReq.WriteLine (def)
+        ' MonFichierReq.WriteLine ("set TAB OFF")
+        NumFichier = FreeFile
+        
+       ' Open "C:\MOSAIC\MULTIREQUETE\REQUETES\" & NomFichierReq For Input As #NumFichier
+        Open ThisWorkbook.Path & "\REQUETES\" & NomFichierReq For Input As #NumFichier
+        Do While Not EOF(NumFichier)
+           Line Input #NumFichier, chaine
+           MonFichierReq.WriteLine (chaine)
+        Loop
+        Close #NumFichier
+        
+        
+        MonFichierReq.WriteLine ("spool off")
+        
+        If flag = 1 Then
+        MonFichierReq.WriteLine ("commit;")
+        End If
+        'MonFichier.WriteLine ("commit;")
+        
+        MonFichierReq.WriteLine ("spool " & repTmp & NomFichierLog & ".terminer")
+        MonFichierReq.WriteLine ("whenever oserror exit rollback;")
+        MonFichierReq.WriteLine ("whenever sqlerror exit rollback;")
+        MonFichierReq.WriteLine ("set heading off")
+        
+        MonFichierReq.WriteLine ("spool off")
+        MonFichierReq.WriteLine ("exit")
+        MonFichierReq.Close
+     End If
+End Function
+
+Function Importer_donnes_SQL(ByVal NbMag As Integer, ByVal codeMag As Integer, ByVal resultat As String, ByVal cheminFichier As String)
+    Dim nomMag, chemin As String
+    Dim WbLu, wbCourant As Workbook
+   ' ByVal NomFichierLog, ByVal codeMag
+    nomMag = Format(codeMag, "000")
+    chemin = ThisWorkbook.Path & "\RESULTAT\"
+    'Sheets("Rapport").Select
+   ' Sheets.Add
+   ' Sheets("Feuil1").Select
+   ' Sheets("Feuil1").Name = nomMag
+    
+     Set wbCourant = ActiveWorkfbook
+     Dim Wk As Workbook
+     Set Wk = Workbooks.Add
+     Application.DisplayAlerts = False
+     Wk.SaveAs Filename:=chemin & resultat & ".xls"
+   '  remise a blanc des cellules
+    ' wbCourant.Sheets(nomMag).Range("A1:Z65535").Value = ""
+     ActiveWorkbook.Sheets.Add after:=Worksheets(Worksheets.Count)
+     ActiveSheet.Name = "toto"
+
+     chemin = ThisWorkbook.Path & "\RESULTAT\"
+     fichier = Dir(chemin & "*.log")
+
+End Function
+
+
+
+
+Sub Importer_donnees_click()
+ Dim fichier, chemin, codeMag As String
+    Dim WbLu, wbCourant As Workbook
+    Dim numLigneCourant, numLigneLu, nbFichiers As Integer
+           
+    Set wbCourant = ActiveWorkbook
+        'Remise à blanc des cellules
+        wbCourant.Sheets("Donnees").Range("A1:Z65535").Value = ""
+        wbCourant.Sheets("Rapport").Range("A1:Z65535").Value = ""
+        
+        'En-tête
+        wbCourant.Sheets("Donnees").Range("A1").Value = "Secteur"
+        wbCourant.Sheets("Donnees").Range("B1").Value = "Rayon"
+        wbCourant.Sheets("Donnees").Range("C1").Value = "Libelle Rayon"
+        wbCourant.Sheets("Donnees").Range("D1").Value = "Sous-rayon"
+        wbCourant.Sheets("Donnees").Range("E1").Value = "Libelle Sous-Rayon"
+        wbCourant.Sheets("Donnees").Range("F1").Value = "Seuil"
+    
+        wbCourant.Sheets("Rapport").Range("A1").Value = "DATE"
+        wbCourant.Sheets("Rapport").Range("B1").Value = "ACTION"
+        wbCourant.Sheets("Rapport").Range("C1").Value = "DETAIL"
+
+        chemin = ThisWorkbook.Path & "\A_TRAITER\"
+        fichier = Dir(chemin & "*.*")
+        
+        numLigneCourant = 2
+        nbFichiers = 1
+                
+        'Parcours des fichiers xls à lire
+        Do While fichier <> ""
+        Set WbLu = Workbooks.Open(chemin & fichier)
+        numLigneLu = 2
+            'Parcours des données du fichier lu
+            While Not WbLu.ActiveSheet.Range("A" & numLigneLu).Value = ""
+                'Alimentation des données lieu/allee/emp/niveau/ligne/CUG/ean/libelle/CAPALIN/stock marchand
+                wbCourant.Sheets("Donnees").Range("A" & numLigneCourant).Value = WbLu.ActiveSheet.Range("A" & numLigneLu).Value
+                wbCourant.Sheets("Donnees").Range("B" & numLigneCourant).Value = WbLu.ActiveSheet.Range("B" & numLigneLu).Value
+                wbCourant.Sheets("Donnees").Range("C" & numLigneCourant).Value = WbLu.ActiveSheet.Range("C" & numLigneLu).Value
+                wbCourant.Sheets("Donnees").Range("D" & numLigneCourant).Value = WbLu.ActiveSheet.Range("D" & numLigneLu).Value
+                wbCourant.Sheets("Donnees").Range("E" & numLigneCourant).Value = WbLu.ActiveSheet.Range("E" & numLigneLu).Value
+                wbCourant.Sheets("Donnees").Range("F" & numLigneCourant).Value = WbLu.ActiveSheet.Range("F" & numLigneLu).Value
+                       
+                numLigneLu = numLigneLu + 1
+                numLigneCourant = numLigneCourant + 1
+            Wend
+        
+        nbFichiers = nbFichiers + 1
+        
+        'Fermeture fichiers
+        WbLu.Close True
+        Set WbLu = Nothing
+        
+        'Alimentation du rapport
+        wbCourant.Sheets("Rapport").Range("A" & nbFichiers).Value = Format(Now, "dd/mm/yyyy hh:mm:ss")
+        wbCourant.Sheets("Rapport").Range("B" & nbFichiers).Value = "IMPORT DONNEES"
+        wbCourant.Sheets("Rapport").Range("C" & nbFichiers).Value = fichier & " traité (" & numLigneLu - 2 & " lignes)"
+        fichier = Dir
+           
+        Loop
+       
+        MsgBox nbFichiers - 1 & " fichiers ont été traités." & Chr(13) & "Le rapport est disponible dans l'onglet Rapport.", vbInformation
+        
+End Sub
+
+
+Function fusionresult()
+    Dim wbf As Variant
+    Dim retval As String
+    Dim fichierFusion, repSchedule, repResult, fichierResult As String
+    Dim chemin, nom As String
+'
+'
+'    'Dim chemin$, fichier$, a$(), n&, x%, texte$, nn&
+'
+    Set chemin = ThisWorkbook.Path & "\RESULTAT\"
+    Set nom = chemin & "Fusion"
+'    Set wbf = Workbook.Add
+'    wbf.SaveAs Filename:=chemin
+'fichier = Dir(chemin)
+'ReDim a(1 To Rows.Count, 1 To 1)
+'While fichier <> ""
+'    If Right(fichier, 4) = ".csv" Then
+'        n = n + 1
+'        x = FreeFile
+'        Open chemin & fichier For Input As #x 'accès en lecture séquentielle
+'        Line Input #x, texte
+'        If nn = 0 Then nn = 1: a(1, 1) = texte & ";Fichier CSV"  'récupère la ligne de titre
+'        While Not EOF(1) 'EndOfFile : fin du fichier
+'            nn = nn + 1
+'            Line Input #x, texte 'récupère la ligne
+'            a(nn, 1) = texte & ";" & fichier
+'        Wend
+'        Close #x
+'    End If
+'    fichier = Dir
+'Wend
+''---restitution---
+'Application.ScreenUpdating = False
+'With wbf.Worksheets(1) 'CodeName, à adapter
+'    .Cells.Clear 'RAZ
+'    If nn Then
+'        With .[A1].Resize(nn)
+'            .Value = a
+'            .TextToColumns [A1], xlDelimited, Semicolon:=True 'commande Convertir
+'        End With
+'        .Rows(1).Font.Bold = True 'gras
+'        .Columns.AutoFit 'ajustement largeurs
+'    End If
+'    With .UsedRange: End With 'actualise les barres de défilement
+'End With
+'Application.ScreenUpdating = True
+''If n Then MsgBox n & " fichier" & IIf(n > 1, "s", "") & " CSV consolidé" & IIf(n > 1, "s...", "...")
+'
+'
+'
+'wbf.SaveAs Filename:=chemin
+End Function
+
+
+--- MODULE: Feuil3.cls ---
+Attribute VB_Name = "Feuil3"
+Attribute VB_Base = "0{00020820-0000-0000-C000-000000000046}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = True
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = True
+
+
+--- MODULE: UFTaskParam.frm ---
+Attribute VB_Name = "UFTaskParam"
+Attribute VB_Base = "0{DB412180-BEBD-4CD7-9EF1-9C6C22A9881C}{B27669A0-4B90-44E1-9345-15C99849E870}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Private Sub Annuler_Click()
+    UFTaskParam.Hide
+End Sub
+
+Private Sub BTASK_Click()
+    Dim Modru, modrp, MODALBIS, fichierSchedule, Modalite, execbat As String
+    Dim incomplet As Boolean
+    repSchedule = ThisWorkbook.Path & "\BAT_BOT\"
+    fichierSchedule = repSchedule & "schedule.bat"
+    Modru = " /ru system "
+    result = vider_repertoire(repSchedule & "schedule.bat", repSchedule)
+    execbat = "nodepad.exe"
+    MODALBIS = ""
+    Modalite = ""
+    incomplet = False
+    
+    If TTask.Text = "" Then
+       MsgBox ("le nom de la tache doit etre renseigné")
+        incomplet = True
+        
+    Else
+        If CPLANIF.Value = "" Then
+             MsgBox ("la frequence de planification doit etre renseigné")
+            incomplet = True
+        Else
+            If Tlogin.Text = "" Then
+                MsgBox ("Vous n'avez pas renseigné le login pour le lancement de la tache")
+                incomplet = True
+            End If
+        End If
+    
+    End If
+    If incomplet = False Then execbat = lancer_script(False, TTask.Text)
+    If execbat = "" Then
+        incomplet = True
+    Else
+        repSchedule = ThisWorkbook.Path & "\BAT_BOT\"
+        fichierSchedule = repSchedule & "schedule.bat"
+        result = vider_repertoire(repSchedule & "schedule.bat", repSchedule)
+        Set oFS = CreateObject("Scripting.FileSystemObject")
+        Set MonFichierTask = oFS.CreateTextFile(fichierSchedule, ForWriting)
+        cmd = "schtasks /delete /TN " & TTask.Text & " /F"
+        MonFichierTask.WriteLine (cmd)
+        MonFichierTask.Close
+        retval = Shell(fichierSchedule, vbHide)
+    End If
+    
+   
+    If incomplet = False Then
+        If StrComp(CPLANIF.Value, "MINUTE", vbBinaryCompare) = 0 Then
+    
+        Else
+            If StrComp(CPLANIF.Value, "HOURLY", vbBinaryCompare) = 0 Then
+    
+            Else
+                If StrComp(CPLANIF.Value, "DAILY", vbBinaryCompare) = 0 Then
+    
+                 Else
+                    If StrComp(CPLANIF.Value, "TOUTES LES SEMAINES", vbBinaryCompare) = 0 Then
+                        For i = 0 To 6
+                            If TAB_JOUR(i) <> "" Then
+                                If MODALBIS = "" Then
+                                    MODALBIS = MODALBIS & TAB_JOUR(i)
+                                Else
+                                    MODALBIS = MODALBIS & "," & TAB_JOUR(i)
+                                End If
+                            End If
+                        Next i
+                        If MODALBIS <> "" Then
+                                 MODALBIS = "/D " & MODALBIS
+                         Else
+                            MsgBox ("au moins un jours doit etre selectionné")
+                            End
+                         End If
+                     Else
+                        If StrComp(CPLANIF.Value, "MENSUEL", vbBinaryCompare) = 0 Then
+                            
+                                For i = 0 To 11
+                                    If TAB_MOIS(i) <> "" Then
+                                       If MODALBIS = "" Then
+                                           MODALBIS = MODALBIS & TAB_MOIS(i)
+                                       Else
+                                           MODALBIS = MODALBIS & "," & TAB_MOIS(i)
+                                       End If
+                                    End If
+                                Next i
+                                If MODALBIS <> "" Then
+                                    MODALBIS = "/M " & MODALBIS
+                                Else
+                                    MsgBox ("au moins un mois doit etre selectionné")
+                                    End
+                                End If
+                             
+                        Else
+    
+                        End If
+                     End If
+                 End If
+            End If
+        End If
+        If Modalite = "" Then
+         Modalite = ""
+        Else
+            Modalite = " /MO " & Modalite
+        End If
+        If Tlogin.Text <> "" Then
+           Modru = " /ru " & Tlogin.Text
+           modrp = " /rp " & Tpassword.Text
+        End If
+        result = vider_repertoire(repSchedule & "schedule.bat", repSchedule)
+        
+        Set oFS = CreateObject("Scripting.FileSystemObject")
+        Set MonFichierBat = oFS.CreateTextFile(fichierSchedule, ForWriting)
+        
+        'MsgBox ("SCHTASKS /CREATE /SC " & CPLANIF.Value & " /ST " & Right(DTHEURE.Value, 10) & " /MO " & Modalite & MODALBIS & " /TN " & TTask & " /TR " & execBat)
+        MonFichierBat.WriteLine ("SCHTASKS /CREATE /SC " & Chr(34) & CPLANIF.Value & Chr(34) & " /ST " & Right(DTHEURE, 9) & " " & Modalite & MODALBIS & " /TN " & TTask.Text & " /TR " & execbat & Modru & modrp)
+        MonFichierBat.Close
+        retval = Shell(fichierSchedule, vbHide)
+        MsgBox ("la tache a été planifié")
+        'UFPLANIF.Show
+    Else
+        incomplet = False
+    End If
+End Sub
+
+
+
+Private Sub BVisuPlanif_Click()
+ UFPLANIF.Show
+End Sub
+
+Private Sub CAOU_Click()
+    If CAOU.Value = True Then
+        TAB_MOIS(7) = "AOU"
+    Else
+        TAB_MOIS(7) = ""
+    End If
+End Sub
+
+Private Sub CAVR_Click()
+    If CAVRIL.Value = True Then
+        TAB_MOIS(3) = "AVR"
+    Else
+        TAB_MOIS(3) = ""
+    End If
+End Sub
+
+Private Sub CDECE_Click()
+    If CDECE.Value = True Then
+        TAB_MOIS(11) = "DEC"
+    Else
+        TAB_MOIS(11) = ""
+    End If
+End Sub
+
+Private Sub CDimanche_Click()
+ If CDimanche.Value = True Then
+        TAB_JOUR(6) = "DIM"
+    Else
+        TAB_JOUR(6) = ""
+    End If
+End Sub
+
+Private Sub CFEV_Click()
+    If CFEV.Value = True Then
+        TAB_MOIS(1) = "FEV"
+    Else
+        TAB_MOIS(1) = ""
+    End If
+End Sub
+
+Private Sub CJAN_Click()
+    If CJAN.Value = True Then
+        TAB_MOIS(0) = "JAN"
+    Else
+        TAB_MOIS(0) = ""
+    End If
+    
+End Sub
+
+Private Sub CJeudi_Click()
+ If CJeudi.Value = True Then
+        TAB_JOUR(3) = "JEU"
+    Else
+        TAB_JOUR(3) = ""
+    End If
+End Sub
+
+Private Sub CJUIL_Click()
+    If CJUIL.Value = True Then
+        TAB_MOIS(6) = "JUL"
+    Else
+        TAB_MOIS(6) = ""
+    End If
+End Sub
+
+Private Sub CJUIN_Click()
+    If CJUIN.Value = True Then
+        TAB_MOIS(5) = "JUN"
+    Else
+        TAB_MOIS(5) = ""
+    End If
+End Sub
+
+Private Sub CLundi_Click()
+    If CLundi.Value = True Then
+        TAB_JOUR(0) = "LUN"
+    Else
+        TAB_JOUR(0) = ""
+    End If
+    
+End Sub
+
+Private Sub CMAI_Click()
+    If CMAI.Value = True Then
+        TAB_MOIS(4) = "MAI"
+    Else
+        TAB_MOIS(4) = ""
+    End If
+End Sub
+
+Private Sub CMAR_Click()
+    If CMAR.Value = True Then
+        TAB_MOIS(2) = "MAR"
+    Else
+        TAB_MOIS(2) = ""
+    End If
+End Sub
+
+Private Sub CMardi_Click()
+ If CMardi.Value = True Then
+        TAB_JOUR(1) = "MAR"
+    Else
+        TAB_JOUR(1) = ""
+    End If
+End Sub
+
+Private Sub CMercredi_Click()
+ If CMercredi.Value = True Then
+        TAB_JOUR(2) = "MER"
+    Else
+        TAB_JOUR(2) = ""
+    End If
+End Sub
+
+Private Sub CNOV_Click()
+    If CNOV.Value = True Then
+        TAB_MOIS(10) = "NOV"
+    Else
+        TAB_MOIS(10) = ""
+    End If
+End Sub
+
+Private Sub COCT_Click()
+    If COCT.Value = True Then
+        TAB_MOIS(9) = "OCT"
+    Else
+        TAB_MOIS(9) = ""
+    End If
+End Sub
+
+Private Sub CPLANIF_Change()
+    CModif.Clear
+    
+    If StrComp(CPLANIF.Value, "MINUTE", vbBinaryCompare) = 0 Then
+         LModif.Visible = True
+         CModif.Visible = True
+    Else
+        If StrComp(CPLANIF.Value, "HOURLY", vbBinaryCompare) = 0 Then
+            LModif.Visible = True
+            CModif.Visible = True
+            
+            For i = 1 To 23
+               CModif.AddItem i
+            Next i
+            CModif.Value = 1
+        Else
+            If StrComp(CPLANIF.Value, "DAILY", vbBinaryCompare) = 0 Then
+                For i = 1 To 365
+                   CModif.AddItem i
+                Next i
+                LModif.Visible = True
+                CModif.Visible = True
+             Else
+                If StrComp(CPLANIF.Value, "TOUTES LES SEMAINES", vbBinaryCompare) = 0 Then
+                    For i = 1 To 52
+                        CModif.AddItem i
+                    Next i
+                    FJOUR.Top = FMOIS.Top
+                    FJOUR.Left = FMOIS.Left
+                    FJOUR.Visible = True
+                    FMOIS.Visible = False
+                    
+                    LModif.Visible = True
+                    CModif.Visible = True
+                 Else
+                    If StrComp(CPLANIF.Value, "MENSUEL", vbBinaryCompare) = 0 Then
+'                        For i = 1 To 12
+'                            CModif.AddItem
+'                        Next i
+                        CModif.AddItem "PREMIER"
+                        CModif.AddItem "SECOND"
+                        CModif.AddItem "TROISIEME"
+                        CModif.AddItem "QUATRIEME"
+                        CModif.AddItem "DERNIER"
+                        
+                        LModif.Visible = True
+                        CModif.Visible = True
+                        FJOUR.Visible = False
+                        FMOIS.Visible = True
+                    Else
+                        LModif.Visible = False
+                        CModif.Visible = False
+                    End If
+                 End If
+             End If
+        End If
+    End If
+            
+               
+                    
+
+    
+End Sub
+
+Private Sub CSEP_Click()
+    If CSEP.Value = True Then
+        TAB_MOIS(8) = "SEP"
+    Else
+        TAB_MOIS(8) = ""
+    End If
+End Sub
+
+Private Sub CVendredi_Click()
+ If CVendredi.Value = True Then
+        TAB_JOUR(4) = "VEN"
+    Else
+        TAB_JOUR(4) = ""
+    End If
+End Sub
+
+Private Sub RefEdit1_BeforeDragOver(Cancel As Boolean, ByVal Data As MSForms.DataObject, ByVal x As stdole.OLE_XPOS_CONTAINER, ByVal Y As stdole.OLE_YPOS_CONTAINER, ByVal DragState As MSForms.fmDragState, Effect As MSForms.fmDropEffect, ByVal Shift As Integer)
+
+End Sub
+
+Private Sub Samedi_Click()
+ If CLundi.Value = True Then
+        TAB_JOUR(5) = "SAM"
+    Else
+        TAB_JOUR(5) = ""
+    End If
+End Sub
+
+Private Sub UserForm_Activate()
+    'CPLANIF.AddItem "MINUTE"
+    'CPLANIF.AddItem "HOURLY"
+    'CPLANIF.AddItem "DAILY"
+    CPLANIF.Clear
+    CPLANIF.AddItem "TOUTES LES SEMAINES"
+    CPLANIF.AddItem "MENSUEL"
+    TAB_MOIS(0) = "JAN"
+    TAB_MOIS(1) = "FEV"
+    TAB_MOIS(2) = "MAR"
+    TAB_MOIS(3) = "AVR"
+    TAB_MOIS(4) = "MAI"
+    TAB_MOIS(5) = "JUL"
+    TAB_MOIS(6) = "JUI"
+    TAB_MOIS(7) = "AOU"
+    TAB_MOIS(8) = "SEP"
+    TAB_MOIS(9) = "OCT"
+    TAB_MOIS(10) = "NOV"
+    TAB_MOIS(11) = "DEV"
+    TREQUETE.Text = UFSelection.CRequete.Value
+End Sub
+
+
+

@@ -461,6 +461,10 @@ class ParamWindow(tk.Toplevel):
 class MultiRequetesApp(tk.Tk):
     def __init__(self):
         super().__init__()
+        
+        self._magasin_data_map = {}  # Pour stocker les infos Oracle par index de ligne
+        self._grappe_data_map = {}   # Pour stocker les noms de grappes par index de ligne
+        
         self.title("Multi-Requêtes")
         self.geometry("920x640")
         # Appliquer un thème moderne
@@ -489,13 +493,13 @@ class MultiRequetesApp(tk.Tk):
         body = ttk.Frame(self, padding=10)
         body.pack(fill="both", expand=True)
 
-        self.mag_list = tk.Listbox(body, selectmode="extended", height=15)
+        self.mag_list = tk.Listbox(body, selectmode="extended", height=15, exportselection=False)
         self.mag_list.pack(side="left", fill="both", expand=True)
         self.mag_scroll = ttk.Scrollbar(body, orient="vertical", command=self.mag_list.yview)
         self.mag_scroll.pack(side="left", fill="y")
         self.mag_list.configure(yscrollcommand=self.mag_scroll.set)
 
-        self.grappe_list = tk.Listbox(body, selectmode="extended", height=15)
+        self.grappe_list = tk.Listbox(body, selectmode="extended", height=15, exportselection=False)
         self.grappe_list.pack(side="left", fill="both", expand=True, padx=(10, 0))
         self.grappe_scroll = ttk.Scrollbar(body, orient="vertical", command=self.grappe_list.yview)
         self.grappe_scroll.pack(side="left", fill="y")
@@ -526,18 +530,49 @@ class MultiRequetesApp(tk.Tk):
             self.req_combo["values"] = []
             self._requete_paths = {}
 
+       # --- Chargement des Magasins ---
         self.mag_list.delete(0, "end")
-        cur.execute(
-            "SELECT m.code, m.nom, g.nom AS grappe FROM magasins m LEFT JOIN grappes g ON m.grappe_id = g.id ORDER BY m.code"
-        )
-        for m in cur.fetchall():
-            self.mag_list.insert("end", f"{m['code']} - {m['nom']} (Grappe: {m['grappe'] or ''})")
+        self._magasin_data_map.clear() # On vide le dictionnaire avant de recharger
+        
+        cur.execute("""
+            SELECT m.code, m.nom, o.host, o.service, o.sid, g.nom AS grappe 
+            FROM magasins m 
+            LEFT JOIN oracle_conn o ON m.oracle_conn_id = o.id 
+            LEFT JOIN grappes g ON o.grappe_id = g.id 
+            ORDER BY m.code
+        """)
+    
+        for index, m in enumerate(cur.fetchall()):
+            label = f"{m['code']} - {m['nom']} (Grappe: {m['grappe'] or ''})"
+            self.mag_list.insert("end", label)
+            # On stocke l'objet complet sous l'index actuel
+            self._magasin_data_map[index] = {
+                "host": m["host"],
+                "service": m["service"],
+                "sid": m["sid"]
+            }
 
+        # --- Chargement des Grappes ---
         self.grappe_list.delete(0, "end")
-        cur.execute("SELECT nom FROM grappes ORDER BY nom")
-        for g in cur.fetchall():
-            self.grappe_list.insert("end", g["nom"])
+        self._grappe_data_map.clear()
 
+        # On récupère le nom de la grappe ET ses infos de connexion Oracle
+        cur.execute("""
+            SELECT g.nom, o.host, o.service, o.sid 
+            FROM grappes g
+            LEFT JOIN oracle_conn o ON o.grappe_id = g.id
+            ORDER BY g.nom
+        """)
+
+        for index, g in enumerate(cur.fetchall()):
+            self.grappe_list.insert("end", g["nom"])
+            # On stocke le nom ET la connexion associée
+            self._grappe_data_map[index] = {
+                "nom": g["nom"],
+                "host": g["host"],
+                "service": g["service"],
+                "sid": g["sid"]
+            }
         conn.close()
 
     def _open_param(self):
@@ -554,36 +589,49 @@ class MultiRequetesApp(tk.Tk):
             print(row)
         cursor.close()
         conn.close()  
-  
     def _execute(self):
-        selection = self.req_combo.get()
-        if not selection:
+        req_nom = self.req_combo.get()
+        if not req_nom:
             messagebox.showwarning("Exécution", "Veuillez sélectionner une requête.")
             return
-        selectionOra = self.mag_list.curselection()
-        if selectionOra:
-            index = selection[0]
-            messagebox.showwarning("index",index)
-            # Récupération de la valeur de l'élément sélectionné
-            oracle_selection = self.mag_list.get(index).strip()
-        else:
-            # Aucun élément sélectionné, gérer le cas ici
-            messagebox.showwarning("alerte","Aucun élément sélectionné")
-    
 
-        if not oracle_selection:
-            messagebox.showwarning("Exécution", "Veuillez sélectionner une base Oracle.")
-        return
-        path = self._requete_paths.get(selection)
-        if path:
-            try:
-                with open(path, 'r', encoding='utf-8') as f:
-                    sql = f.read()
-                self._log(f"Exécution de la requête '{selection}':\n{sql}")
-            except Exception as e:
-                self._log(f"Erreur lors de la lecture du fichier '{selection}': {e}")
-        else:
-            self._log(f"Requête '{selection}' non trouvée.")
+        # 1. Le tableau final qui contiendra toutes les connexions Oracle à traiter
+        connexions_cibles = []
+
+        # 2. Récupérer les magasins sélectionnés via le dictionnaire
+        for i in self.mag_list.curselection():
+            data_mag = self._magasin_data_map.get(i)
+            if data_mag and data_mag["host"]:
+                # On ajoute les infos dans le tableau commun
+                connexions_cibles.append(data_mag)
+
+        # 3. Récupérer les grappes sélectionnées via le dictionnaire
+        for i in self.grappe_list.curselection():
+            data_grappe = self._grappe_data_map.get(i)
+            if data_grappe and data_grappe["host"]:
+                # On ajoute les infos dans le MÊME tableau commun
+                connexions_cibles.append({
+                    "host": data_grappe["host"],
+                    "service": data_grappe["service"],
+                    "sid": data_grappe["sid"]
+                })
+
+        # 4. Vérification si le tableau est vide
+        if not connexions_cibles:
+            messagebox.showwarning("Alerte", "Aucune connexion Oracle valide trouvée pour cette sélection.")
+            return
+
+        # 5. Suppression des doublons 
+        # Si un utilisateur sélectionne un magasin ET sa grappe, on évite de lancer deux fois
+        unique_targets = [dict(t) for t in {tuple(d.items()) for d in connexions_cibles}]
+
+        # 6. Lancement de la boucle sur le tableau final
+        self._log(f"Début de l'exécution sur {len(unique_targets)} base(s) Oracle...")
+        
+        for db in unique_targets:
+            self._log(f"Traitement de : {db['host']}...")
+            # Ici vous appelez votre fonction de connexion avec oracledb
+            # self._run_query_on_oracle(req_nom, db)
 
 
 

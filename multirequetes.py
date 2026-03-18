@@ -249,7 +249,13 @@ class SondeWindow(tk.Toplevel):
         super().__init__(master)
         self.master = master
         self.title("Paramétrage des Sondes")
-        self.geometry("950x850")
+        self.geometry("800x600")
+        w, h = 800, 600
+        ws = self.winfo_screenwidth()
+        hs = self.winfo_screenheight()
+        x = (ws // 2) - (w // 2)
+        y = (hs // 2) - (h // 2)
+        self.geometry(f"{w}x{h}+{x}+{y}")
         self.protocol("WM_DELETE_WINDOW", self._on_close)
         self.current_sonde_id = None
         
@@ -393,7 +399,15 @@ class ParamWindow(tk.Toplevel):
         super().__init__(master)
         self.master = master
         self.title("Paramétrage BDD")
-        self.geometry("800x800")
+        self.geometry("800x600")
+        w, h = 800, 600
+        ws = self.winfo_screenwidth()
+        hs = self.winfo_screenheight()
+        x = (ws // 2) - (w // 2)
+        y = (hs // 2) - (h // 2)
+        self.geometry(f"{w}x{h}+{x}+{y}")
+        
+        self.grab_set()
         self.protocol("WM_DELETE_WINDOW", self._on_close)
         
         self.db_type_var = tk.StringVar(value="Oracle")
@@ -471,11 +485,17 @@ class ParamWindow(tk.Toplevel):
 class MultiRequetesApp(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Supervision Multi-SGBD")
-        try:
-            self.state('zoomed') # Plein écran
-        except:
-            self.geometry("1100x800")
+        self.geometry("800x600")
+        self.title("Multirequete")
+        w, h = 800, 600
+        ws = self.winfo_screenwidth()
+        hs = self.winfo_screenheight()
+        x = (ws // 2) - (w // 2)
+        y = (hs // 2) - (h // 2)
+        
+        # 3. ON APPLIQUE LA GÉOMÉTRIE
+        self.geometry(f"{w}x{h}+{x}+{y}")
+        self.grab_set()
         
         setup_environment()
         init_db()

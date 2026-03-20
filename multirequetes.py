@@ -1,7 +1,8 @@
 import os
 import sqlite3
 import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog
+from tkinter import ttk, messagebox, simpledialog,filedialog
+import json
 
 # --- CONFIGURATION ---
 DB_PATH = "multirequetes.db"
@@ -71,7 +72,52 @@ def init_db():
     conn.commit()
     conn.close()
 
+class TypeDbSelector(tk.Toplevel):
+    def __init__(self, master, current_val):
+        super().__init__(master)
+        self.master = master
+        self.title("Sélection SGBD")
+        self.result = None
         
+        # --- REMPLACEMENT DE self.eval POUR ÉVITER L'ERREUR ---
+        w, h = 350, 180
+        ws = self.winfo_screenwidth()
+        hs = self.winfo_screenheight()
+        x = (ws // 2) - (w // 2)
+        y = (hs // 2) - (h // 2)
+        self.geometry(f"{w}x{h}+{x}+{y}")
+        # -----------------------------------------------------
+        
+        self.grab_set() 
+        self.resizable(False, False)
+
+        container = ttk.Frame(self, padding=20)
+        container.pack(fill="both", expand=True)
+
+        ttk.Label(container, text="Quel type de BDD organiser ?", font=("Arial", 10)).pack(pady=(0, 10))
+
+        # On définit les valeurs explicitement ici
+        self.cb = ttk.Combobox(container, values=("Oracle", "MySQL", "PostgreSQL"), state="readonly")
+        
+        # On essaie de mettre la valeur actuelle, sinon la première par défaut
+        if current_val in ("Oracle", "MySQL", "PostgreSQL"):
+            self.cb.set(current_val)
+        else:
+            self.cb.current(0)
+            
+        self.cb.pack(pady=10, fill="x")
+        
+        ttk.Button(container, text="Valider", command=self._on_validate).pack(pady=10, fill="x")
+
+    def _on_validate(self):
+        self.result = self.cb.get()
+        if self.result:
+            self.destroy()
+
+    def _on_validate(self):
+        self.result = self.cb.get()
+        self.destroy()
+               
 # --- FENÊTRE : selection grappe SCHEMA pour les sondes---#
 class CiblePickerWindow(tk.Toplevel):
     def __init__(self, master, current_targets, db_type):
@@ -160,9 +206,11 @@ class CiblePickerWindow(tk.Toplevel):
         
 # --- FENÊTRE : ORGANISER --- #
 class OrganiserWindow(tk.Toplevel):
-    def __init__(self, master):
+    def __init__(self, master, db_type): # <-- Ajoute db_type ici
         super().__init__(master)
-        self.title("Organisation des Sondes - Vue Dynamique")
+        self.master = master
+        self.db_type = db_type # <-- On le stocke
+        self.title(f"Organisation des Sondes - {self.db_type}")
         
         # 1. Ajustement dynamique à l'écran (Plein écran)
         try:
@@ -234,20 +282,38 @@ class OrganiserWindow(tk.Toplevel):
         self.canvas.itemconfig(self.canvas_window, width=new_width)
 
     def _build_sections(self):
+        """Récupère les sondes filtrées et les place dans les colonnes gauche/droite"""
         conn = get_db_connection()
+        # On récupère les catégories de sondes
         fonctions = conn.execute("SELECT * FROM sonde_fonctions ORDER BY nom").fetchall()
         
         for i, func in enumerate(fonctions):
-            parent = self.col_left if i % 2 == 0 else self.col_right
-            frame = tk.LabelFrame(parent, text=f"  {func['nom'].upper()}  ", bg="white", 
-                                  font=("Arial", 10, "bold"), fg="#333", padx=10, pady=10)
-            frame.pack(fill="x", pady=15, padx=5)
-            frame.fonction_id = func['id']
-            self.sections[func['id']] = frame
+            # Filtre par fonction et par type de BDD
+            sondes = conn.execute("""
+                SELECT * FROM sondes 
+                WHERE fonction_id = ? AND type_db = ? 
+                ORDER BY ordre
+            """, (func['id'], self.db_type)).fetchall()
             
-            sondes = conn.execute("SELECT * FROM sondes WHERE fonction_id=? ORDER BY ordre ASC", (func['id'],)).fetchall()
-            for s in sondes:
-                self._create_sonde_widget(frame, s['id'], s['nom_sonde'])
+            if sondes:
+                # --- CORRECTION ICI ---
+                # On choisit la colonne (qui utilise pack à l'intérieur)
+                # mais on ne "pack" pas sur self.page_a4 directement
+                parent_col = self.col_left if i % 2 == 0 else self.col_right
+                
+                # Le LabelFrame est l'enfant de la COLONNE
+                frame = tk.LabelFrame(parent_col, text=f"  {func['nom'].upper()}  ", 
+                                      bg="white", font=("Arial", 10, "bold"), padx=10, pady=10)
+                
+                # On utilise pack() car parent_col n'a pas encore de "grid" à l'intérieur
+                frame.pack(fill="x", pady=15, padx=5)
+                
+                frame.fonction_id = func['id']
+                self.sections[func['id']] = frame
+                
+                for s in sondes:
+                    self._create_sonde_widget(frame, s['id'], s['nom_sonde'])
+        
         conn.close()
 
     def _create_sonde_widget(self, parent, sonde_id, nom_sonde):
@@ -429,7 +495,7 @@ class SondeWindow(tk.Toplevel):
         f_btns = ttk.Frame(container)
         f_btns.pack(fill="x", pady=10)
         ttk.Button(f_btns, text="ENREGISTRER", command=self._save_sonde).pack(side="left", fill="x", expand=True, padx=2)
-        ttk.Button(f_btns, text="ORGANISER", command=lambda: OrganiserWindow(self)).pack(side="left", fill="x", expand=True, padx=2)
+        ttk.Button(f_btns, text="ORGANISER", command=self._prepare_organiser).pack(side="left", fill="x", expand=True)
         tk.Button(f_btns, text="SUPPRIMER", bg="#ffcccc", fg="red", command=self._delete_sonde_active).pack(side="left", fill="x", expand=True, padx=2)
 
     def _open_cible_picker(self):
@@ -540,7 +606,15 @@ class SondeWindow(tk.Toplevel):
             messagebox.showerror("Erreur de sauvegarde", str(e))
         finally:
             conn.close()
-
+    def _prepare_organiser(self):
+        # On ouvre notre nouvelle fenêtre de sélection au lieu du simpledialog
+        selector = TypeDbSelector(self, self.db_type_var.get())
+        self.wait_window(selector) # Attend que l'utilisateur valide
+        
+        if selector.result:
+            # On lance l'organisation avec le type choisi proprement
+            OrganiserWindow(self, selector.result)
+            
     def _add_fonction_popup(self):
         n = simpledialog.askstring("Fonction", "Nom de la nouvelle fonction :")
         if n:
@@ -575,8 +649,9 @@ class ParamWindow(tk.Toplevel):
         super().__init__(master)
         self.master = master
         self.title("Paramétrage BDD")
-        self.geometry("800x600")
-        w, h = 800, 600
+        
+        # Centrage de la fenêtre
+        w, h = 1200, 700
         ws = self.winfo_screenwidth()
         hs = self.winfo_screenheight()
         x = (ws // 2) - (w // 2)
@@ -586,77 +661,319 @@ class ParamWindow(tk.Toplevel):
         self.grab_set()
         self.protocol("WM_DELETE_WINDOW", self._on_close)
         
+        # Variables
         self.db_type_var = tk.StringVar(value="Oracle")
-        self.host_var = tk.StringVar(); self.port_var = tk.StringVar(value="1521"); self.service_var = tk.StringVar(); self.oracle_grappe_var = tk.StringVar()
-        self.mag_code_var = tk.StringVar(); self.mag_schema_var = tk.StringVar(); self.mag_oracle_var = tk.StringVar()
-        self._current_oracle_id = None; self._current_SCHEMA_id = None
+        self.host_var = tk.StringVar()
+        self.port_var = tk.StringVar(value="1521")
+        self.service_var = tk.StringVar()
+        self.oracle_grappe_var = tk.StringVar()
+        
+        self.mag_code_var = tk.StringVar()
+        self.mag_schema_var = tk.StringVar()
+        self.mag_oracle_var = tk.StringVar()
+        
+        self._current_oracle_id = None
+        self._current_SCHEMA_id = None
 
-        self._build_ui(); self._load_data_filtered(); self.grab_set()
+        self._build_ui()
+        self._load_data_filtered()
 
     def _on_close(self):
-        self.master.deiconify(); self.master._load_data(); self.destroy()
+        self.master.deiconify()
+        self.master._load_data()
+        self.destroy()
+
+    def _update_default_port(self, event=None):
+        """Définit le port par défaut selon le SGBD et recharge les données"""
+        ports = {"Oracle": "1521", "MySQL": "3306", "PostgreSQL": "5432"}
+        self.port_var.set(ports.get(self.db_type_var.get(), "1521"))
+        self._load_data_filtered()
 
     def _build_ui(self):
-        container = ttk.Frame(self, padding=10); container.pack(fill="both", expand=True)
-        # SGBD
-        f_type = ttk.LabelFrame(container, text="1. SGBD", padding=5); f_type.pack(fill="x", pady=5)
-        cb = ttk.Combobox(f_type, textvariable=self.db_type_var, values=("Oracle", "MySQL", "PostgreSQL"), state="readonly")
-        cb.pack(fill="x"); cb.bind("<<ComboboxSelected>>", lambda e: self._load_data_filtered())
-        # Serveurs
-        f_net = ttk.LabelFrame(container, text="2. Serveurs", padding=5); f_net.pack(fill="x")
-        self.tree_o = ttk.Treeview(f_net, columns=("h", "p", "s", "g"), show="headings", height=5)
-        for c, t in [("h", "Hôte"), ("p", "Port"), ("s", "Service"), ("g", "Grappe")]: self.tree_o.heading(c, text=t)
-        self.tree_o.pack(side="left", fill="both", expand=True); self.tree_o.bind("<<TreeviewSelect>>", self._on_ora_sel)
-        form_n = ttk.Frame(f_net, padding=5); form_n.pack(side="right")
-        ttk.Entry(form_n, textvariable=self.host_var).pack(); ttk.Entry(form_n, textvariable=self.port_var).pack(); ttk.Entry(form_n, textvariable=self.service_var).pack()
-        self.cb_g = ttk.Combobox(form_n, textvariable=self.oracle_grappe_var); self.cb_g.pack()
-        ttk.Button(form_n, text="Sauver", command=self._save_o).pack(fill="x")
-        # schemas
-        f_mag = ttk.LabelFrame(container, text="3. schemas", padding=5); f_mag.pack(fill="both", expand=True)
-        self.tree_m = ttk.Treeview(f_mag, columns=("c", "s", "g"), show="headings")
-        for c, t in [("c", "Code"), ("s", "Schéma"), ("g", "Grappe")]: self.tree_m.heading(c, text=t)
-        self.tree_m.pack(side="left", fill="both", expand=True); self.tree_m.bind("<<TreeviewSelect>>", self._on_mag_sel)
-        form_m = ttk.Frame(f_mag, padding=5); form_m.pack(side="right")
-        ttk.Entry(form_m, textvariable=self.mag_code_var).pack(); ttk.Entry(form_m, textvariable=self.mag_schema_var).pack()
-        self.cb_o = ttk.Combobox(form_m, textvariable=self.mag_oracle_var, state="readonly"); self.cb_o.pack()
-        ttk.Button(form_m, text="Sauver", command=self._save_m).pack(fill="x")
+        container = ttk.Frame(self, padding=10)
+        container.pack(fill="both", expand=True)
 
+        # 1. SGBD
+        f_type = ttk.LabelFrame(container, text=" 1. Type de SGBD ", padding=5)
+        f_type.pack(fill="x", pady=5)
+        ttk.Label(f_type, text="SGBD :").pack(side="left", padx=5)
+        cb = ttk.Combobox(f_type, textvariable=self.db_type_var, values=("Oracle", "MySQL", "PostgreSQL"), state="readonly")
+        cb.pack(side="left", fill="x", expand=True, padx=5)
+        cb.bind("<<ComboboxSelected>>", self._update_default_port)
+
+        # --- 2. CONFIGURATION DES SERVEURS ---
+        f_net = ttk.LabelFrame(container, text=" 2. Configuration des Serveurs ", padding=5)
+        f_net.pack(fill="both", expand=True, pady=5)
+        
+        f_table_o = ttk.Frame(f_net)
+        f_table_o.pack(side="left", fill="both", expand=True)
+
+        self.tree_o = ttk.Treeview(f_table_o, columns=("h", "p", "s", "g"), show="headings", height=8)
+        for c, t in [("h", "Hôte"), ("p", "Port"), ("s", "Service/SID"), ("g", "Grappe")]:
+            self.tree_o.heading(c, text=t)
+        
+        scroll_o = ttk.Scrollbar(f_table_o, orient="vertical", command=self.tree_o.yview)
+        self.tree_o.configure(yscrollcommand=scroll_o.set)
+        
+        self.tree_o.pack(side="left", fill="both", expand=True)
+        scroll_o.pack(side="right", fill="y")
+
+        form_n = ttk.Frame(f_net, padding=5, width=250) 
+        form_n.pack(side="right", fill="y")
+        form_n.pack_propagate(False) # Garde la largeur fixe
+        
+        ttk.Label(form_n, text="Hôte :").pack(anchor="w")
+        ttk.Entry(form_n, textvariable=self.host_var).pack(fill="x", pady=2)
+        ttk.Label(form_n, text="Port :").pack(anchor="w")
+        ttk.Entry(form_n, textvariable=self.port_var).pack(fill="x", pady=2)
+        ttk.Label(form_n, text="Service / SID :").pack(anchor="w")
+        ttk.Entry(form_n, textvariable=self.service_var).pack(fill="x", pady=2)
+        ttk.Label(form_n, text="Grappe :").pack(anchor="w")
+        self.cb_g = ttk.Combobox(form_n, textvariable=self.oracle_grappe_var)
+        self.cb_g.pack(fill="x", pady=2)
+
+        btn_grid = ttk.Frame(form_n, padding=5)
+        btn_grid.pack(fill="x", pady=5)
+        ttk.Button(btn_grid, text="➕ Ajouter", command=self._add_connection).grid(row=0, column=0, sticky="ew", padx=2, pady=2)
+        ttk.Button(btn_grid, text="📥 Importer", command=self._import_connections_json).grid(row=0, column=1, sticky="ew", padx=2, pady=2)
+        ttk.Button(btn_grid, text="💾 Sauver", command=self._save_o).grid(row=1, column=0, sticky="ew", padx=2, pady=2)
+        ttk.Button(btn_grid, text="🗑️ Supprimer", command=self._delete_connection).grid(row=1, column=1, sticky="ew", padx=2, pady=2)
+        btn_grid.columnconfigure(0, weight=1); btn_grid.columnconfigure(1, weight=1)
+
+        # --- 3. CONFIGURATION DES SCHÉMAS ---
+        f_mag = ttk.LabelFrame(container, text=" 3. Configuration des Schémas ", padding=5)
+        f_mag.pack(fill="both", expand=True, pady=5)
+        
+        # Zone de gauche (Container pour le tableau du bas)
+        f_table_m = ttk.Frame(f_mag)
+        f_table_m.pack(side="left", fill="both", expand=True)
+
+        # CORRECTION : On attache le treeview à f_table_m, pas f_mag
+        self.tree_m = ttk.Treeview(f_table_m, columns=("c", "s", "g"), show="headings", height=8)
+        for c, t in [("c", "Code"), ("s", "Schéma"), ("g", "Grappe")]:
+            self.tree_m.heading(c, text=t)
+        
+        # CORRECTION : On attache la scrollbar à f_table_m
+        scroll_m = ttk.Scrollbar(f_table_m, orient="vertical", command=self.tree_m.yview)
+        self.tree_m.configure(yscrollcommand=scroll_m.set) # CORRECTION : scroll_m.set au lieu de scroll_o
+        
+        self.tree_m.pack(side="left", fill="both", expand=True)
+        scroll_m.pack(side="right", fill="y") # Affiche la scrollbar
+        self.tree_m.bind("<<TreeviewSelect>>", self._on_mag_sel)
+
+        # Zone de droite : Formulaire (Même largeur que celui du haut)
+        form_m = ttk.Frame(f_mag, padding=5, width=250)
+        form_m.pack(side="right", fill="y")
+        form_m.pack_propagate(False) # Garde la largeur fixe de 250
+        
+        ttk.Label(form_m, text="Code Schéma :").pack(anchor="w")
+        ttk.Entry(form_m, textvariable=self.mag_code_var).pack(fill="x", pady=2)
+        ttk.Label(form_m, text="Schéma SQL :").pack(anchor="w")
+        ttk.Entry(form_m, textvariable=self.mag_schema_var).pack(fill="x", pady=2)
+        ttk.Label(form_m, text="Serveur lié :").pack(anchor="w")
+        self.cb_o = ttk.Combobox(form_m, textvariable=self.mag_oracle_var, state="readonly")
+        self.cb_o.pack(fill="x", pady=2)
+        ttk.Button(form_m, text="Sauver Schéma", command=self._save_m).pack(fill="x", pady=10)
     def _load_data_filtered(self):
-        conn = get_db_connection(); t = self.db_type_var.get()
+        conn = get_db_connection()
+        t = self.db_type_var.get()
+        
+        # --- PARTIE SERVEURS ---
         self.tree_o.delete(*self.tree_o.get_children())
-        res = conn.execute("SELECT o.*, g.nom as gnom FROM oracle_conn o LEFT JOIN grappes g ON o.grappe_id = g.id WHERE o.type_db=?", (t,)).fetchall()
+        res = conn.execute("""
+            SELECT o.*, g.nom as gnom 
+            FROM oracle_conn o 
+            LEFT JOIN grappes g ON o.grappe_id = g.id 
+            WHERE o.type_db=?
+        """, (t,)).fetchall()
+        
         self.cb_o["values"] = [f"{r['id']} | {r['host']}" for r in res]
-        for r in res: self.tree_o.insert("", "end", iid=r["id"], values=(r["host"], r["port"], r["service"], r["gnom"]))
-        self.tree_m.delete(*self.tree_m.get_children())
-        res_m = conn.execute("SELECT m.*, g.nom as gnom FROM schemas m JOIN oracle_conn o ON m.oracle_conn_id = o.id LEFT JOIN grappes g ON m.grappe_id = g.id WHERE o.type_db=?", (t,)).fetchall()
-        for r in res_m: self.tree_m.insert("", "end", iid=r["id"], values=(r["code"], r["schema"], r["gnom"]))
-        gres = conn.execute("SELECT nom FROM grappes").fetchall(); self.cb_g["values"] = [r["nom"] for r in gres]; conn.close()
+        
+        for r in res:
+            self.tree_o.insert("", "end", iid=r["id"], values=(r["host"], r["port"], r["service"], r["gnom"]))
+        
+        # --- PARTIE SCHÉMAS ---
+       # On récupère l'ID et le Nom de toutes les grappes
+        res_g = conn.execute("SELECT id, nom FROM grappes ORDER BY nom").fetchall()
+        
+        # On crée une liste de chaînes "ID | Nom"
+        # Exemple : ["1 | Production", "2 | Test"]
+        self.cb_o["values"] = [f"{r['id']} | {r['nom']}" for r in res_g]
+        
+        conn.close()
 
     def _save_o(self):
         conn = get_db_connection(); cur = conn.cursor()
         g = self.oracle_grappe_var.get().strip() or "SANS GRAPPE"
         cur.execute("INSERT OR IGNORE INTO grappes (nom) VALUES (?)", (g,))
         gid = cur.execute("SELECT id FROM grappes WHERE nom=?", (g,)).fetchone()["id"]
-        if self._current_oracle_id: cur.execute("UPDATE oracle_conn SET host=?, port=?, service=?, grappe_id=? WHERE id=?", (self.host_var.get(), self.port_var.get(), self.service_var.get(), gid, self._current_oracle_id))
-        else: cur.execute("INSERT INTO oracle_conn (type_db, host, port, service, grappe_id) VALUES (?,?,?,?,?)", (self.db_type_var.get(), self.host_var.get(), self.port_var.get(), self.service_var.get(), gid))
+        if self._current_oracle_id: 
+            cur.execute("UPDATE oracle_conn SET host=?, port=?, service=?, grappe_id=? WHERE id=?", 
+                        (self.host_var.get(), self.port_var.get(), self.service_var.get(), gid, self._current_oracle_id))
+        else: 
+            cur.execute("INSERT INTO oracle_conn (type_db, host, port, service, grappe_id) VALUES (?,?,?,?,?)", 
+                        (self.db_type_var.get(), self.host_var.get(), self.port_var.get(), self.service_var.get(), gid))
         conn.commit(); conn.close(); self._load_data_filtered()
 
     def _save_m(self):
         if not self.cb_o.get(): return
         oid = self.cb_o.get().split(" | ")[0]
-        conn = get_db_connection(); cur = conn.cursor(); gid = cur.execute("SELECT grappe_id FROM oracle_conn WHERE id=?", (oid,)).fetchone()["grappe_id"]
-        if self._current_SCHEMA_id: cur.execute("UPDATE schemas SET code=?, schema=?, oracle_conn_id=?, grappe_id=? WHERE id=?", (self.mag_code_var.get(), self.mag_schema_var.get(), oid, gid, self._current_SCHEMA_id))
-        else: cur.execute("INSERT INTO schemas (code, schema, oracle_conn_id, grappe_id) VALUES (?,?,?,?)", (self.mag_code_var.get(), self.mag_schema_var.get(), oid, gid))
+        conn = get_db_connection(); cur = conn.cursor()
+        gid = cur.execute("SELECT grappe_id FROM oracle_conn WHERE id=?", (oid,)).fetchone()["grappe_id"]
+        if self._current_SCHEMA_id: 
+            cur.execute("UPDATE schemas SET code=?, schema=?, oracle_conn_id=?, grappe_id=? WHERE id=?", 
+                        (self.mag_code_var.get(), self.mag_schema_var.get(), oid, gid, self._current_SCHEMA_id))
+        else: 
+            cur.execute("INSERT INTO schemas (code, schema, oracle_conn_id, grappe_id) VALUES (?,?,?,?)", 
+                        (self.mag_code_var.get(), self.mag_schema_var.get(), oid, gid))
         conn.commit(); conn.close(); self._load_data_filtered()
 
-    def _on_ora_sel(self, e):
-        s = self.tree_o.selection()
-        if s: self._current_oracle_id = s[0]; v = self.tree_o.item(s[0], "values"); self.host_var.set(v[0]); self.port_var.set(v[1]); self.service_var.set(v[2]); self.oracle_grappe_var.set(v[3])
+    def _on_ora_sel(self, event):
+        selection = self.tree_o.selection()
+        if not selection:
+            return
+            
+        # On récupère l'ID (iid) et les valeurs de la ligne
+        item_id = selection[0]
+        values = self.tree_o.item(item_id, 'values')
+        
+        if values:
+            # values[0] = Hôte, values[1] = Port, values[2] = Service, values[3] = Grappe
+            self.host_var.set(values[0])
+            self.port_var.set(values[1])
+            self.service_var.set(values[2])
+            self.oracle_grappe_var.set(values[3] if values[3] else "")
+            
+            # On stocke l'ID actuel pour la fonction "Sauver"
+            self._current_oracle_id = item_id
 
     def _on_mag_sel(self, e):
         s = self.tree_m.selection()
-        if s: self._current_SCHEMA_id = s[0]; v = self.tree_m.item(s[0], "values"); self.mag_code_var.set(v[0]); self.mag_schema_var.set(v[1])
+        if s: 
+            self._current_SCHEMA_id = s[0]
+            v = self.tree_m.item(s[0], "values")
+            self.mag_code_var.set(v[0]); self.mag_schema_var.set(v[1])
+    
+    def _add_connection(self):
+        """Réinitialise les champs pour une nouvelle saisie manuelle"""
+        # On remet les chaînes à vide
+        self.host_var.set("")
+        self.port_var.set("1521") 
+        self.service_var.set("")
+        self.oracle_grappe_var.set("")
+        
+        self._current_oracle_id = None
+        
+        # On remet les listes déroulantes sur la première valeur ou vide
+        self.type_db_v.set("Oracle") 
+        self.grappe_v.set("")        # Ou "Aucune" selon ton initialisation
+        self.ent_host.focus_set()        
+                
+    def _delete_connection(self):
+        # 1. Récupérer TOUTES les lignes sélectionnées (retourne une liste d'IDs)
+        sel_o = self.tree_o.selection() # Liste des IDs serveurs
+        sel_m = self.tree_m.selection() # Liste des IDs schémas
 
+        if not sel_o and not sel_m:
+            messagebox.showwarning("Suppression", "Veuillez sélectionner au moins un élément.")
+            return
+
+        conn = get_db_connection()
+        try:
+            # CAS A : Suppression de SERVEURS
+            if sel_o:
+                if messagebox.askyesno("Confirmation", f"Supprimer les {len(sel_o)} serveurs sélectionnés et leurs schémas ?"):
+                    for db_id in sel_o:
+                        # Supprimer les schémas liés d'abord
+                        conn.execute("DELETE FROM schemas WHERE oracle_conn_id = ?", (db_id,))
+                        # Supprimer le serveur
+                        conn.execute("DELETE FROM oracle_conn WHERE id = ?", (db_id,))
+                    conn.commit()
+                    messagebox.showinfo("Succès", f"{len(sel_o)} serveur(s) supprimé(s).")
+
+            # CAS B : Suppression de SCHÉMAS (si rien n'est sélectionné dans les serveurs)
+            elif sel_m:
+                if messagebox.askyesno("Confirmation", f"Supprimer les {len(sel_m)} schémas sélectionnés ?"):
+                    for sch_id in sel_m:
+                        conn.execute("DELETE FROM schemas WHERE id = ?", (sch_id,))
+                    conn.commit()
+                    messagebox.showinfo("Succès", f"{len(sel_m)} schéma(s) supprimé(s).")
+
+        except Exception as e:
+            messagebox.showerror("Erreur", f"Erreur lors de la suppression : {e}")
+        finally:
+            conn.close()
+            # 3. Rafraîchir l'affichage
+            self._load_data_filtered()
+            
+    def _import_connections_json(self):
+        filepath = filedialog.askopenfilename(
+            title="Sélectionner l'export JSON SQL Developer",
+            filetypes=[("Fichiers JSON", "*.json"), ("Tous les fichiers", "*.*")]
+        )
+        
+        if not filepath:
+            return
+
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+
+            conn = get_db_connection()
+            count = 0
+            
+            # --- DÉBUT DU BLOC SQL DEVELOPER ---
+            # On vérifie si c'est le format spécifique de SQL Developer
+            if isinstance(data, dict) and "connections" in data:
+                connections_list = data["connections"]
+            else:
+                connections_list = data 
+
+            for item in connections_list:
+                # Extraction du bloc "info"
+                info = item.get("info", {})
+                
+                # Noms de clés spécifiques à SQL Developer
+                host = info.get("hostname")
+                port = info.get("port", "1521")
+                service = info.get("serviceName")
+                name = item.get("name", host)
+                user = info.get("user", "UNKNOWN")
+
+                if not host or not service:
+                    continue
+
+                # 1. Gestion de la Grappe (NAV_FOLDER)
+                grappe_nom = info.get("NAV_FOLDER", "IMPORT_SQLDEV")
+                res = conn.execute("SELECT id FROM grappes WHERE nom = ?", (grappe_nom,)).fetchone()
+                if res:
+                    grappe_id = res[0] # ou res['id'] selon ton row_factory
+                else:
+                    cur = conn.execute("INSERT INTO grappes (nom) VALUES (?)", (grappe_nom,))
+                    grappe_id = cur.lastrowid
+
+                # 2. Insertion Connexion
+                cur = conn.execute("""
+                    INSERT INTO oracle_conn (host, port, service, type_db, grappe_id)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (host, port, service, "Oracle", grappe_id))
+                conn_id = cur.lastrowid
+
+                # 3. Insertion Schéma
+              #  conn.execute("""
+              #      INSERT INTO schemas (nom, schema, oracle_conn_id)
+              #      VALUES (?, ?, ?)
+               # """, (name, user, conn_id))
+                
+                count += 1
+            conn.commit()
+            conn.close()
+        
+            messagebox.showinfo("Succès", f"{count} connexions importées !")
+            self._load_data_filtered()
+        except Exception as e:
+            # C'est ce bloc "except" qui manquait ou qui était mal aligné !
+            messagebox.showerror("Erreur", f"Erreur lors de l'import : {str(e)}")        
 # --- APPLICATION PRINCIPALE ---
 class MultiRequetesApp(tk.Tk):
     def __init__(self):
@@ -686,7 +1003,12 @@ class MultiRequetesApp(tk.Tk):
         self._load_data()
 
     def _build_ui(self):
-        # TOP MENU (Fixe en haut)
+        # Configuration des poids pour que la fenêtre soit extensible
+        self.grid_rowconfigure(1, weight=3) # Zone Listes (prioritaire)
+        self.grid_rowconfigure(2, weight=1) # Zone Logs
+        self.grid_columnconfigure(0, weight=1)
+
+        # --- ROW 0 : TOP MENU (Fixe en haut) ---
         top = ttk.Frame(self, padding=10)
         top.grid(row=0, column=0, sticky="ew")
         
@@ -694,42 +1016,158 @@ class MultiRequetesApp(tk.Tk):
         cb = ttk.Combobox(top, textvariable=self.type_v, values=("Oracle", "MySQL", "PostgreSQL"), state="readonly")
         cb.pack(side="left", padx=5)
         cb.bind("<<ComboboxSelected>>", lambda e: self._load_data())
-        #----liste requete  
+
         ttk.Label(top, text="Fichier SQL :").pack(side="left", padx=(15, 0))
         self.cb_files = ttk.Combobox(top, textvariable=self.file_v, state="readonly", width=35)
         self.cb_files.pack(side="left", padx=5)
         
-        ttk.Button(top, text="Paramétrage BDD", command=self._open_bdd).pack(side="right", padx=2)
+        # On garde tes boutons de paramétrage bien à droite
         ttk.Button(top, text="Paramétrage Sondes", command=self._open_sondes).pack(side="right", padx=2)
+        ttk.Button(top, text="Paramétrage BDD", command=self._open_bdd).pack(side="right", padx=2)
 
-        # BODY (Extensible)
+        # --- ROW 1 : BODY (Les Listbox) ---
         body = ttk.Frame(self, padding=10)
         body.grid(row=1, column=0, sticky="nsew")
-        body.grid_columnconfigure(0, weight=1) # Col schemas
-        body.grid_columnconfigure(1, weight=1) # Col Grappes
+        body.grid_columnconfigure(0, weight=1) 
+        body.grid_columnconfigure(1, weight=1) 
         body.grid_rowconfigure(0, weight=1)
 
         # schemas
         m_col = ttk.LabelFrame(body, text=" schemas / Serveurs ", padding=5)
         m_col.grid(row=0, column=0, sticky="nsew", padx=5)
-        self.l_m = tk.Listbox(m_col, font=("Segoe UI", 10))
+        self.l_m = tk.Listbox(m_col, font=("Segoe UI", 10), selectmode="multiple",exportselection=0)
         self.l_m.pack(fill="both", expand=True)
         
         # Grappes
         g_col = ttk.LabelFrame(body, text=" Grappes ", padding=5)
         g_col.grid(row=0, column=1, sticky="nsew", padx=5)
-        self.l_g = tk.Listbox(g_col, font=("Segoe UI", 10))
+        self.l_g = tk.Listbox(g_col, font=("Segoe UI", 10), selectmode="multiple",exportselection=0)
         self.l_g.pack(fill="both", expand=True)
 
-        # BOTTOM (Fixe en bas)
+        # --- ROW 2 : ZONE DE LOG (Console) ---
+        log_frame = ttk.LabelFrame(self, text=" Console d'exécution ", padding=5)
+        log_frame.grid(row=2, column=0, sticky="nsew", padx=10, pady=5)
+
+        # Attention : J'ai remis fg="black" car sur fond bleu clair (#d1f7ff), le gris clair ne se verrait pas
+        self.log_text = tk.Text(log_frame, height=8, bg="#d1f7ff", fg="black", font=("Consolas", 10))
+        self.log_text.pack(side="left", fill="both", expand=True)
+        
+        scroll_log = ttk.Scrollbar(log_frame, command=self.log_text.yview)
+        scroll_log.pack(side="right", fill="y")
+        self.log_text.config(yscrollcommand=scroll_log.set)
+
+        # --- ROW 3 : BOTTOM (Bouton Lancer) ---
         bottom = ttk.Frame(self, padding=10)
-        bottom.grid(row=2, column=0, sticky="ew")
-        ttk.Button(bottom, text="Lancer les requêtes").pack(side="right")
+        bottom.grid(row=3, column=0, sticky="ew")
+        # Ajout du command=self._run_queries pour que le bouton serve à quelque chose !
+        ttk.Button(bottom, text="🚀 Lancer les requêtes", command=self._run_queries).pack()
 
     def _open_bdd(self): self.withdraw(); ParamWindow(self)
     def _open_sondes(self): self.withdraw(); SondeWindow(self)
 
-    
+    def _log(self, message, level="INFO"):
+        self.log_text.insert("end", f"[{level}] {message}\n")
+        self.log_text.see("end") # Scroll automatique
+        self.update_idletasks() # Force la mise à jour visuelle
+        
+    def _run_queries(self):
+        sql_file = self.file_v.get()
+        db_type = self.type_v.get() # Exemple: "Oracle"
+        
+        self.log_text.delete("1.0", "end")
+        
+        if not sql_file:
+            self._log("Erreur : Aucun fichier SQL sélectionné.", "ERROR")
+            return
+
+        conn_sqlite = get_db_connection()
+        targets = []
+        
+        # --- 1. SCHÉMAS INDIVIDUELS ---
+        selected_m = self.l_m.curselection()
+        for i in selected_m:
+            name = self.l_m.get(i)
+            self._log(f"Recherche infos pour le schéma : {name}...", "DEBUG")
+            
+            # Utilisation de UPPER() en SQL pour éviter les problèmes de majuscules/minuscules
+            res = conn_sqlite.execute("""
+                SELECT s.schema, o.host, o.port, o.service 
+                FROM schemas s 
+                JOIN oracle_conn o ON s.oracle_conn_id = o.id 
+                WHERE s.nom = ? AND UPPER(o.type_db) = UPPER(?)
+            """, (name, db_type)).fetchone()
+            
+            if res:
+                targets.append(res)
+            else:
+                self._log(f"Incohérence : {name} trouvé dans la liste mais pas en base pour le type {db_type}", "WARN")
+
+        # --- 2. GRAPPES ---
+        selected_g = self.l_g.curselection()
+        for i in selected_g:
+            name = self.l_g.get(i)
+            self._log(f"Recherche serveurs de la grappe : {name}...", "DEBUG")
+            
+            res_g = conn_sqlite.execute("""
+                SELECT s.schema, o.host, o.port, o.service 
+                FROM schemas s 
+                JOIN oracle_conn o ON s.oracle_conn_id = o.id 
+                JOIN grappes g ON o.grappe_id = g.id
+                WHERE g.nom = ? AND UPPER(o.type_db) = UPPER(?)
+            """, (name, db_type)).fetchall()
+            
+            if res_g:
+                targets.extend(res_g)
+            else:
+                self._log(f"Grappe {name} vide ou type {db_type} incorrect.", "WARN")
+        
+        conn_sqlite.close()
+
+        if not targets:
+            self._log(f"AUCUNE CIBLE TROUVÉE pour {db_type}. Vérifiez la correspondance des noms.", "ERROR")
+            return
+
+        # Si on arrive ici, on a des cibles, on lance l'exécution
+        self._execute_on_engine(db_type, targets, sql_file)
+
+    def _execute_on_engine(self, db_type, targets, sql):
+        self._log(f"Démarrage exécution sur {len(targets)} cibles ({db_type})...")
+        
+        # On suppose que l'utilisateur a saisi les accès quelque part ou qu'on utilise un standard
+        user = "VOTRE_USER"
+        pwd = "VOTRE_PASSWORD"
+
+        for t in targets:
+            self._log(f"Connexion à {t['host']} ({t['schema']})...")
+            try:
+                if db_type == "Oracle":
+                    import oracledb
+                    dsn = oracledb.makedsn(t['host'], t['port'], service_name=t['service'])
+                    conn = oracledb.connect(user=user, password=pwd, dsn=dsn)
+                    
+                elif db_type == "MySQL":
+                    import mysql.connector
+                    conn = mysql.connector.connect(host=t['host'], port=t['port'], user=user, password=pwd, database=t['service'])
+                    
+                elif db_type == "PostgreSQL":
+                    import psycopg2
+                    conn = psycopg2.connect(host=t['host'], port=t['port'], user=user, password=pwd, dbname=t['service'])
+
+                # Exécution
+                cursor = conn.cursor()
+                # Si ton SQL contient plusieurs requêtes séparées par des ; 
+                # il faudra peut-être boucler sur sql.split(';')
+                cursor.execute(sql)
+                conn.commit()
+                
+                self._log(f"SUCCÈS : {t['schema']} mis à jour.", "OK")
+                conn.close()
+
+            except Exception as e:
+                self._log(f"ÉCHEC sur {t['schema']}: {str(e)}", "ERROR")
+
+        self._log("Traitement terminé.")
+        
     def _load_files(self):
         """Scanne le dossier requete et remplit la liste en haut"""
         if os.path.exists("requete"):
@@ -748,6 +1186,8 @@ class MultiRequetesApp(tk.Tk):
         for r in res_g: self.l_g.insert("end", r['nom'])
         conn.close()
         self._load_files()
+        
+    
 
 if __name__ == "__main__":
     app = MultiRequetesApp(); app.mainloop()

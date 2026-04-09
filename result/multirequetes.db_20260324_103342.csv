@@ -1,8 +1,0 @@
-id;nom_sonde;type_sonde;fonction_id;type_alerte;type_db;serveur_id;requete;ordre
-1;Controle appro;Fonctionnelle;2;Majeur;Oracle;5;dsqdqqz;0
-2;controle referencement;Fonctionnelle;5;Majeur;Oracle;6;zzqeezqea;1
-3;controle filiere;Fonctionnelle;1;Majeur;Oracle;5;ezezaeazaz;0
-4;Controle facture;;4;;Oracle;5;qdqdsqdqs;0
-5;controle BL;;5;;Oracle;5;dqdsqqs;0
-6;Controle reception;;2;;Oracle;5;qqdqsqd;1
-7;test mysql;;4;;MySQL;;sdfsfsd;0

@@ -40,27 +40,41 @@
                 }
                 .sonde-card:last-child { border-bottom: none; }
 
-                /* Style de base pour le titre de la sonde */
                 .sonde-header { 
                     font-weight: bold; 
                     font-size: 1.1em;
-                    margin-bottom: 5px; 
+                    margin-bottom: 5px;
+                    display: flex;
+                    align-items: center;
                 }
+
+                .mop-link {
+                    text-decoration: none;
+                    background-color: #f8f9fa;
+                    border: 1px solid #d1d8e0;
+                    color: #2c3e50;
+                    font-size: 0.7em;
+                    padding: 2px 8px;
+                    border-radius: 4px;
+                    margin-left: 10px;
+                    transition: background 0.2s;
+                }
+                .mop-link:hover { background-color: #e9ecef; }
 
                 .meta { font-size: 0.75em; color: #95a5a6; margin-bottom: 8px; }
                 
-                table { border-collapse: collapse; width: 100%; font-size: 0.85em; }
+                table { border-collapse: collapse; width: 100%; font-size: 0.85em; margin-top: 10px; }
                 th { background-color: #f8f9fa; color: #333; padding: 6px; text-align: left; border-bottom: 2px solid #ddd; }
                 td { padding: 5px; border-bottom: 1px solid #eee; }
                 
-                .error { color: #e74c3c; font-size: 0.85em; padding: 5px; background: #fdf2f2; }
+                .error { color: #e74c3c; font-size: 0.85em; padding: 5px; background: #fdf2f2; border-radius: 4px; }
                 
                 @media (max-width: 1100px) { .report-grid { grid-template-columns: 1fr; } }
             </style>
         </head>
         <body>
             <h1>📊 Rapport d'Exploitation</h1>
-            <div class="date">Généré le 24/03/2026 16:04:42</div>
+            <div class="date">Généré le 25/03/2026 15:03:21</div>
             
             <div class="report-grid">
         
@@ -69,10 +83,10 @@
             
                 <div class="sonde-card">
                     <div class="sonde-header" style="color: #e67e22;">
-                        ● CTRL SONDE <small>(Majeur)</small>
+                        ● CTRL SONDE 
                     </div>
-                    <div class="meta">📍 C:/FORMATION/multirequetes.db | multirequetes.db</div>
-                <table class="dataframe">
+                    <div class="meta">📍 C:/FORMATION/multirequetes.db | multirequetes.db <span style="float:right;">[Majeur]</span></div>
+                <table class="dataframe sonde-table">
   <thead>
     <tr style="text-align: right;">
       <th>type_db</th>
@@ -96,10 +110,10 @@
 </table></div>
                 <div class="sonde-card">
                     <div class="sonde-header" style="color: #3498db;">
-                        ● controle BDD 2 <small>(Mineur)</small>
+                        ● controle BDD 2 <a href="https://eu.sharepoint.ent.cgi.com/sites/CL9777/Documentation/600%20-%20RUN/603%20-%20Exploitation/Alertes%20Flux%20Weldom%20-%20STORE.xlsx?d=wc4b59a307c8748818996d2621f88080f" target="_blank" class="mop-link" title="Ouvrir le Mode Opératoire">📖 MOP</a>
                     </div>
-                    <div class="meta">📍 C:/FORMATION/multirequetes.db | multirequetes.db</div>
-                <table class="dataframe">
+                    <div class="meta">📍 C:/FORMATION/multirequetes.db | multirequetes.db <span style="float:right;">[Mineur]</span></div>
+                <table class="dataframe sonde-table">
   <thead>
     <tr style="text-align: right;">
       <th>type_db</th>
@@ -122,10 +136,10 @@
             
                 <div class="sonde-card">
                     <div class="sonde-header" style="color: #e74c3c;">
-                        ● CTRL BDD <small>(Critique)</small>
+                        ● CTRL BDD <a href="https://eu.sharepoint.ent.cgi.com/sites/CL9777/Documentation/600%20-%20RUN/603%20-%20Exploitation/Suivi_exploitation.xlsx?d=w0435d3ef03424e88ade7a23ba71cf123" target="_blank" class="mop-link" title="Ouvrir le Mode Opératoire">📖 MOP</a>
                     </div>
-                    <div class="meta">📍 C:/FORMATION/multirequetes.db | multirequetes.db</div>
-                <table class="dataframe">
+                    <div class="meta">📍 C:/FORMATION/multirequetes.db | multirequetes.db <span style="float:right;">[Critique]</span></div>
+                <table class="dataframe sonde-table">
   <thead>
     <tr style="text-align: right;">
       <th>type_db</th>

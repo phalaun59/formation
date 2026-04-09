@@ -1,1 +1,1 @@
-SELECT * FROM users WHERE active = 1;
+SELECT count(1) FROM mgart

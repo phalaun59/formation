@@ -6,10 +6,28 @@ import json
 import pandas as pd
 from datetime import datetime
 import webbrowser
+import sys
+import csv
 
+
+def resource_path(relative_path):
+    """ Gestion des chemins pour PyInstaller et le développement """
+    try:
+        # PyInstaller crée un dossier temporaire _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 # --- CONFIGURATION ---
-DB_PATH = "multirequetes.db"
+DB_PATH = resource_path("multirequetes.db")
+BASE_DIR = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(".")
+REQUETE_DIR = os.path.join(BASE_DIR, "requete")
+RESULT_DIR = os.path.join(BASE_DIR, "result")
 
+# Création automatique des dossiers s'ils manquent
+for d in [REQUETE_DIR, RESULT_DIR]:
+    if not os.path.exists(d):
+        os.makedirs(d)
 # --- INITIALISATION ---
 def setup_environment():
     for folder in ["requete", "result"]:
@@ -56,6 +74,7 @@ def init_db():
         type_db TEXT,
         serveur_id INTEGER,
         requete TEXT,
+        lien_MOP TEXT,
         ordre INTEGER DEFAULT 0)""")
 
     cur.execute("CREATE TABLE IF NOT EXISTS sonde_fonctions (id INTEGER PRIMARY KEY AUTOINCREMENT, nom TEXT UNIQUE)")
@@ -73,29 +92,39 @@ def init_db():
     conn.commit()
     conn.close()
 def ask_credentials(parent):
-    """Ouvre une popup pour saisir login/pass et retourne les valeurs"""
+    """Ouvre une popup pour saisir uniquement le mot de passe"""
     dialog = tk.Toplevel(parent)
-    dialog.title("Authentification Oracle")
-    dialog.geometry("300x150")
+    dialog.title("Authentification BDD")
+    dialog.geometry("300x130")
     dialog.resizable(False, False)
-    dialog.transient(parent) # Reste au-dessus de la fenêtre principale
-    dialog.grab_set() # Bloque l'interaction avec le reste
+    dialog.transient(parent)
+    dialog.grab_set()
 
-    # Centrage relatif au parent
+    # Centrage
     x = parent.winfo_x() + (parent.winfo_width() // 2) - 150
-    y = parent.winfo_y() + (parent.winfo_height() // 2) - 75
+    y = parent.winfo_y() + (parent.winfo_height() // 2) - 65
     dialog.geometry(f"+{x}+{y}")
 
-    result = {"user": None, "pass": None}
+    result = {"pass": None}
 
-    tk.Label(dialog, text="Utilisateur :").pack(pady=(10, 0))
-    user_ent = ttk.Entry(dialog)
-    user_ent.pack(padx=20, fill="x")
-    user_ent.focus_set()
-
-    tk.Label(dialog, text="Mot de passe :").pack(pady=(5, 0))
+    tk.Label(dialog, text="Entrez le mot de passe pour les schémas :", font=('Helvetica', 9, 'bold')).pack(pady=10)
+    
     pass_ent = ttk.Entry(dialog, show="*")
     pass_ent.pack(padx=20, fill="x")
+    pass_ent.focus_set()
+
+    def on_confirm(event=None):
+        result["pass"] = pass_ent.get()
+        dialog.destroy()
+
+    btn = ttk.Button(dialog, text="Valider", command=on_confirm)
+    btn.pack(pady=10)
+    
+    # Validation avec la touche Entrée
+    dialog.bind('<Return>', on_confirm)
+    
+    parent.wait_window(dialog)
+    return result["pass"]
 
     def on_confirm():
         result["user"] = user_ent.get()
@@ -106,6 +135,7 @@ def ask_credentials(parent):
     
     parent.wait_window(dialog) # Attend la fermeture de la popup
     return result["user"], result["pass"]
+
 
 class ProbeEngine:
     def __init__(self, sqlite_conn_func):
@@ -138,6 +168,7 @@ class ProbeEngine:
                 s.type_alerte,
                 s.requete as requete_sql, 
                 o.host, o.port, o.service, o.type_db, 
+                s.lien_MOP,
                 COALESCE(sch.schema, o.libelle) as schema_name,
                 s.ordre,
                 f.nom as fonction_nom  
@@ -184,7 +215,8 @@ class ProbeEngine:
         return {
             "libelle": target['libelle'],
             "fonction_nom": target.get('fonction_nom', 'AUTRE'),
-            "alerte": target.get('type_alerte', 'Mineur'), # <--- NE PAS OUBLIER CECI
+            "alerte": target.get('type_alerte', 'Mineur'),
+            "lien_mop": target.get('lien_MOP', ''),
             "host": target['host'],
             "service": target['service'],
             "schema": target['schema_name'],
@@ -229,8 +261,12 @@ class ProbeEngine:
             conn.close()
             
     def _generate_html_report(self, results):
-        """Génère le rapport HTML avec couleurs dynamiques selon le type d'alerte"""
+        """Génère le rapport HTML avec couleurs dynamiques et liens MOP"""
         from collections import defaultdict
+        import os
+        import webbrowser
+        from datetime import datetime
+        
         now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
         # 1. Regroupement par fonction
@@ -240,7 +276,6 @@ class ProbeEngine:
             groups[f_nom].append(r)
 
         # 2. Dictionnaire des couleurs pour les alertes
-        # Rouge pour Critique, Orange pour Majeur, Bleu pour Mineur
         color_map = {
             "Critique": "#e74c3c",  # Rouge
             "Majeur": "#e67e22",    # Orange
@@ -289,20 +324,34 @@ class ProbeEngine:
                 }}
                 .sonde-card:last-child {{ border-bottom: none; }}
 
-                /* Style de base pour le titre de la sonde */
                 .sonde-header {{ 
                     font-weight: bold; 
                     font-size: 1.1em;
-                    margin-bottom: 5px; 
+                    margin-bottom: 5px;
+                    display: flex;
+                    align-items: center;
                 }}
+
+                .mop-link {{
+                    text-decoration: none;
+                    background-color: #f8f9fa;
+                    border: 1px solid #d1d8e0;
+                    color: #2c3e50;
+                    font-size: 0.7em;
+                    padding: 2px 8px;
+                    border-radius: 4px;
+                    margin-left: 10px;
+                    transition: background 0.2s;
+                }}
+                .mop-link:hover {{ background-color: #e9ecef; }}
 
                 .meta {{ font-size: 0.75em; color: #95a5a6; margin-bottom: 8px; }}
                 
-                table {{ border-collapse: collapse; width: 100%; font-size: 0.85em; }}
+                table {{ border-collapse: collapse; width: 100%; font-size: 0.85em; margin-top: 10px; }}
                 th {{ background-color: #f8f9fa; color: #333; padding: 6px; text-align: left; border-bottom: 2px solid #ddd; }}
                 td {{ padding: 5px; border-bottom: 1px solid #eee; }}
                 
-                .error {{ color: #e74c3c; font-size: 0.85em; padding: 5px; background: #fdf2f2; }}
+                .error {{ color: #e74c3c; font-size: 0.85em; padding: 5px; background: #fdf2f2; border-radius: 4px; }}
                 
                 @media (max-width: 1100px) {{ .report-grid {{ grid-template-columns: 1fr; }} }}
             </style>
@@ -321,24 +370,39 @@ class ProbeEngine:
             """
             
             for r in s_list:
-                # Détermination de la couleur selon l'alerte
-                alerte_type = r.get('alerte', 'Mineur')
-                titre_couleur = color_map.get(alerte_type, "#2980b9") # Bleu par défaut si non trouvé
+                # 3. Normalisation de l'alerte pour la couleur (sécurité str)
+                alerte_raw = str(r.get('alerte', 'Mineur')).strip().capitalize()
+                titre_couleur = color_map.get(alerte_raw, "#2c3e50")
+
+                # 4. Gestion sécurisée du lien MOP (Correction de l'erreur Float)
+                mop_url = r.get('lien_mop')
+                html_mop = ""
+                
+                if mop_url and str(mop_url).strip() != "" and str(mop_url).lower() != "nan":
+                    mop_str = str(mop_url).strip()
+                    
+                    if not mop_str.lower().startswith('http'):
+                        # Formatage du chemin Windows pour le navigateur
+                        target_link = "file:///" + mop_str.replace("\\", "/")
+                    else:
+                        target_link = mop_str
+                    
+                    html_mop = f'<a href="{target_link}" target="_blank" class="mop-link" title="Ouvrir le Mode Opératoire">📖 MOP</a>'
 
                 html += f"""
                 <div class="sonde-card">
                     <div class="sonde-header" style="color: {titre_couleur};">
-                        ● {r['libelle']} <small>({alerte_type})</small>
+                        ● {r['libelle']} {html_mop}
                     </div>
-                    <div class="meta">📍 {r['host']} | {r['schema']}</div>
+                    <div class="meta">📍 {r['host']} | {r['schema']} <span style="float:right;">[{alerte_raw}]</span></div>
                 """
                 
-                if r['error']:
+                if r.get('error'):
                     html += f"<div class='error'>❌ {r['error']}</div>"
-                elif r['data'] is not None and not r['data'].empty:
-                    html += r['data'].to_html(index=False, border=0)
+                elif r.get('data') is not None and not r['data'].empty:
+                    html += r['data'].to_html(index=False, border=0, classes='sonde-table')
                 else:
-                    html += "<p style='font-size:0.8em; color:gray;'>Aucune donnée.</p>"
+                    html += "<p style='font-size:0.8em; color:gray; font-style: italic;'>Aucune donnée retournée par la requête.</p>"
                 
                 html += "</div>"
             
@@ -346,9 +410,13 @@ class ProbeEngine:
 
         html += "</div></body></html>"
 
-        with open(self.report_path, "w", encoding="utf-8") as f:
-            f.write(html)
-        webbrowser.open("file://" + os.path.realpath(self.report_path))
+        # 5. Écriture et ouverture du fichier
+        try:
+            with open(self.report_path, "w", encoding="utf-8") as f:
+                f.write(html)
+            webbrowser.open("file://" + os.path.realpath(self.report_path))
+        except Exception as e:
+            print(f"Erreur lors de la génération du rapport : {e}")
 
 class TypeDbSelector(tk.Toplevel):
     def __init__(self, master, current_val):
@@ -758,7 +826,8 @@ class SondeWindow(tk.Toplevel):
         self.db_type_var = tk.StringVar(value="Oracle")
         self.alerte_var = tk.StringVar(value="Majeur") 
         self.search_sonde_var = tk.StringVar()
-        self.alerte_var = tk.StringVar(value="") 
+        self.alerte_var = tk.StringVar(value="")
+        self.lien_mop_var = tk.StringVar()
 
         self._build_ui()
         self._load_fonctions()
@@ -768,7 +837,28 @@ class SondeWindow(tk.Toplevel):
     def _on_close(self):
         self.master.deiconify()
         self.destroy()
+    def _browse_mop_file(self):
+        """Ouvre une boîte de dialogue pour sélectionner un fichier local"""
+        from tkinter import filedialog
+        import os
 
+        # Ouvre l'explorateur de fichiers
+        chemin_fichier = filedialog.askopenfilename(
+            title="Sélectionner le Mode Opératoire",
+            filetypes=[
+                ("Tous les fichiers", "*.*"),
+                ("Documents PDF", "*.pdf"),
+                ("Images", "*.png;*.jpg;*.jpeg"),
+                ("Documents Word", "*.docx")
+            ]
+        )
+
+        if chemin_fichier:
+            # On normalise le chemin pour éviter les problèmes de slashs Windows
+            chemin_propre = os.path.normpath(chemin_fichier)
+            self.lien_mop_var.set(chemin_propre)
+            
+            
     def _build_ui(self):
         container = ttk.Frame(self, padding=15)
         container.pack(fill="both", expand=True)
@@ -809,15 +899,25 @@ class SondeWindow(tk.Toplevel):
         cb_db.grid(row=3, column=1, sticky="ew", pady=2)
         cb_db.bind("<<ComboboxSelected>>", lambda e: self._reset_targets())
 
-        # Ligne 4 : Type Alerte (CORRECTION ICI)
+        # Ligne 4 : Type Alerte 
         ttk.Label(grid, text="Niveau Alerte :").grid(row=4, column=0, sticky="w")
         ttk.Combobox(grid, textvariable=self.alerte_var, values=("Mineur", "Majeur", "Critique"), state="readonly").grid(row=4, column=1, sticky="ew", pady=2)
-
-        # Ligne 5 : Cibles
-        ttk.Label(grid, text="Cibles :").grid(row=5, column=0, sticky="w")
+        
+        # Ligne 5 : Lien MOP (Saisie URL + Bouton Parcourir)
+        ttk.Label(grid, text="Lien MOP / URL :").grid(row=5, column=0, sticky="w")
+        
+        f_mop = ttk.Frame(grid)
+        f_mop.grid(row=5, column=1, sticky="ew", pady=2)
+        
+        ttk.Entry(f_mop, textvariable=self.lien_mop_var).pack(side="left", fill="x", expand=True)
+        ttk.Button(f_mop, text="...", width=3, command=self._browse_mop_file).pack(side="left", padx=2)
+        
+        
+        # Ligne 6 : Cibles - ON PASSE SUR LA LIGNE 6
+        ttk.Label(grid, text="Cibles :").grid(row=6, column=0, sticky="w")
         self.btn_cible = ttk.Button(grid, text="🎯 Définir les cibles (0 sélectionnées)", 
                                    command=self._open_cible_picker)
-        self.btn_cible.grid(row=5, column=1, sticky="ew", pady=5)
+        self.btn_cible.grid(row=6, column=1, sticky="ew", pady=5)
 
         grid.columnconfigure(1, weight=1)
 
@@ -844,6 +944,7 @@ class SondeWindow(tk.Toplevel):
             self.db_type_var.set(s['type_db'])
             self.type_sonde_var.set(s['type_sonde'] if s['type_sonde'] else "Fonctionnelle")
             self.alerte_var.set(s['type_alerte'] if s['type_alerte'] else "")
+            self.lien_mop_var.set(s['lien_MOP'] if s['lien_MOP'] else "")
 
             # Chargement de la fonction
             f = conn.execute("SELECT nom FROM sonde_fonctions WHERE id=?", (s['fonction_id'],)).fetchone()
@@ -869,7 +970,8 @@ class SondeWindow(tk.Toplevel):
         req = self.txt_req.get("1.0", "end-1c").strip()
         db_type = self.db_type_var.get()
         t_sonde = self.type_sonde_var.get()
-        alerte = self.alerte_var.get() 
+        alerte = self.alerte_var.get()
+        mop = self.lien_mop_var.get().strip()
 
         if not all([nom, f_nom, req,alerte]): 
             return messagebox.showwarning("Erreur", "Veuillez remplir le nom, la fonction ,la requête et le niveau d 'alerte.")
@@ -882,15 +984,15 @@ class SondeWindow(tk.Toplevel):
 
             if self.current_sonde_id:
                 # Ajout de type_alerte et type_sonde dans l'UPDATE
-                conn.execute("""UPDATE sondes SET nom_sonde=?, fonction_id=?, requete=?, type_db=?, type_sonde=?, type_alerte=? 
-                             WHERE id=?""", (nom, f_id, req, db_type, t_sonde, alerte, self.current_sonde_id))
+                conn.execute("""UPDATE sondes SET nom_sonde=?, fonction_id=?, requete=?, type_db=?, type_sonde=?, type_alerte=?, lien_MOP=?
+                             WHERE id=?""", (nom, f_id, req, db_type, t_sonde, alerte, mop ,self.current_sonde_id))
                 sid = self.current_sonde_id
                 conn.execute("DELETE FROM sonde_cibles WHERE sonde_id=?", (sid,))
             else:
                 # Ajout de type_alerte et type_sonde dans l'INSERT
                 cur = conn.cursor()
-                cur.execute("""INSERT INTO sondes (nom_sonde, fonction_id, requete, type_db, type_sonde, type_alerte) 
-                            VALUES (?,?,?,?,?,?)""", (nom, f_id, req, db_type, t_sonde, alerte))
+                cur.execute("""INSERT INTO sondes (nom_sonde, fonction_id, requete, type_db, type_sonde, type_alerte, lien_MOP=?) 
+                            VALUES (?,?,?,?,?,?)""", (nom, f_id, req, db_type, t_sonde, alerte, mop))
                 sid = cur.lastrowid
 
             # Enregistrement des cibles
@@ -1000,82 +1102,49 @@ class ParamWindow(tk.Toplevel):
         
         self.schema_code_var = tk.StringVar()
         self.nom_schema_var = tk.StringVar()
-        self.Schema_oracle_var = tk.StringVar()
+        self.Schema_oracle_var = tk.StringVar() # Utilisé par la Combobox cb_o
         
         self._current_oracle_id = None
         self._current_SCHEMA_id = None
 
         self._build_ui()
-        # Initialisation de l'affichage selon le type par défaut
         self._update_ui_visibility()
 
     def _on_close(self):
         self.master.deiconify()
-        self.master._load_data()
+        if hasattr(self.master, '_load_data'):
+            self.master._load_data()
         self.destroy()
 
     def _update_ui_visibility(self, event=None):
-        """Gère l'affichage dynamique selon le SGBD choisi"""
         db_type = self.db_type_var.get()
         
         if db_type == "SQLite":
-            # 1. Masquer la section Schémas
             self.f_mag.pack_forget()
-            
-            # 2. Adapter la section Serveurs
             self.f_net.configure(text=" 2. Configuration des Fichiers SQLite ")
             self.lbl_host.configure(text="Chemin du fichier (.db) :")
-            self.btn_browse.pack(side="right", padx=2) # Afficher bouton parcourir
-            
-            # 3. Masquer Port et Service (inutiles en SQLite)
-            self.lbl_port.pack_forget()
-            self.ent_port.pack_forget()
-            self.lbl_service.pack_forget()
-            self.ent_service.pack_forget()
-            
-            # 4. Ajuster titres colonnes Treeview
+            self.btn_browse.pack(side="right", padx=2)
+            self.lbl_port.pack_forget(); self.ent_port.pack_forget()
+            self.lbl_service.pack_forget(); self.ent_service.pack_forget()
             self.tree_o.heading("h", text="Chemin Complet")
-            self.tree_o.heading("p", text="-")
-            self.tree_o.heading("s", text="-")
         else:
-            # 1. Réafficher la section Schémas
             self.f_mag.pack(fill="both", expand=True, pady=5)
-            
-            # 2. Réafficher les champs réseau
             self.f_net.configure(text=" 2. Configuration des Serveurs ")
             self.lbl_host.configure(text="Hôte :")
-            self.btn_browse.pack_forget() # Masquer bouton parcourir
-            
-            self.lbl_port.pack(anchor="w")
-            self.ent_port.pack(fill="x", pady=2)
-            self.lbl_service.pack(anchor="w")
-            self.ent_service.pack(fill="x", pady=2)
-            
-            # 3. Restaurer titres colonnes Treeview
+            self.btn_browse.pack_forget()
+            self.lbl_port.pack(anchor="w"); self.ent_port.pack(fill="x", pady=2)
+            self.lbl_service.pack(anchor="w"); self.ent_service.pack(fill="x", pady=2)
             self.tree_o.heading("h", text="Hôte")
-            self.tree_o.heading("p", text="Port")
-            self.tree_o.heading("s", text="Service/SID")
 
-            # 4. Port par défaut
             ports = {"Oracle": "1521", "MySQL": "3306", "PostgreSQL": "5432"}
-            if self.db_type_var.get() == "SQLite":
-                self.port_var.set("") 
-            elif self.db_type_var.get() == "PostgreSQL":
-                self.port_var.set("5432")
-            elif self.db_type_var.get() == "PostgreSQL":
-                self.port_var.set("3306")
-            else:
-                self.port_var.set("")
-                
-        self._current_oracle_id = None
+            self.port_var.set(ports.get(db_type, ""))
 
-        # Recharger les données
+        self._current_oracle_id = None
         self._load_server()
         if db_type != "SQLite":
             self._load_schema()
 
     def _browse_db_file(self):
-        """Ouvre un sélecteur de fichier pour SQLite"""
         path = filedialog.askopenfilename(title="Sélectionner une base SQLite", 
                                          filetypes=[("SQLite DB", "*.db;*.sqlite"), ("Tous", "*.*")])
         if path:
@@ -1090,13 +1159,11 @@ class ParamWindow(tk.Toplevel):
         # 1. SGBD
         f_type = ttk.LabelFrame(container, text=" 1. Type de SGBD ", padding=5)
         f_type.pack(fill="x", pady=5)
-        ttk.Label(f_type, text="SGBD :").pack(side="left", padx=5)
-        cb = ttk.Combobox(f_type, textvariable=self.db_type_var, 
-                          values=("Oracle", "MySQL", "PostgreSQL", "SQLite"), state="readonly")
+        cb = ttk.Combobox(f_type, textvariable=self.db_type_var, values=("Oracle",  "SQLite"), state="readonly")
         cb.pack(side="left", fill="x", expand=True, padx=5)
         cb.bind("<<ComboboxSelected>>", self._update_ui_visibility)
 
-        # --- 2. CONFIGURATION DES SERVEURS / FICHIERS ---
+        # 2. SERVEURS
         self.f_net = ttk.LabelFrame(container, text=" 2. Configuration des Serveurs ", padding=5)
         self.f_net.pack(fill="both", expand=True, pady=5)
         
@@ -1104,12 +1171,12 @@ class ParamWindow(tk.Toplevel):
         f_table_o.pack(side="left", fill="both", expand=True)
 
         self.tree_o = ttk.Treeview(f_table_o, columns=("h", "p", "s", "g"), show="headings", height=8)
-        self.tree_o.column("h", width=300) 
-        self.tree_o.column("p", width=80) 
-        self.tree_o.column("s", width=150)
-        self.tree_o.column("g", width=150)
         for c, t in [("h", "Hôte"), ("p", "Port"), ("s", "Service/SID"), ("g", "Libellé")]:
             self.tree_o.heading(c, text=t)
+        self.tree_o.column("h", width=150, minwidth=100) # Hôte 
+        self.tree_o.column("p", width=20, anchor="center") # Port 
+        self.tree_o.column("s", width=120)                # Service
+        self.tree_o.column("g", width=200)                # Libellé
         
         scroll_o = ttk.Scrollbar(f_table_o, orient="vertical", command=self.tree_o.yview)
         self.tree_o.configure(yscrollcommand=scroll_o.set)
@@ -1117,7 +1184,6 @@ class ParamWindow(tk.Toplevel):
         scroll_o.pack(side="right", fill="y")
         self.tree_o.bind("<<TreeviewSelect>>", self._on_ora_sel)
         
-        # Formulaire de droite
         self.form_n = ttk.Frame(self.f_net, padding=5, width=300) 
         self.form_n.pack(side="right", fill="y")
         self.form_n.pack_propagate(False) 
@@ -1130,25 +1196,20 @@ class ParamWindow(tk.Toplevel):
         self.btn_browse = ttk.Button(f_h, text="...", width=3, command=self._browse_db_file)
         
         self.lbl_port = ttk.Label(self.form_n, text="Port :")
-        self.lbl_port.pack(anchor="w")
         self.ent_port = ttk.Entry(self.form_n, textvariable=self.port_var)
-        self.ent_port.pack(fill="x", pady=2)
-
         self.lbl_service = ttk.Label(self.form_n, text="Service / SID :")
-        self.lbl_service.pack(anchor="w")
         self.ent_service = ttk.Entry(self.form_n, textvariable=self.service_var)
-        self.ent_service.pack(fill="x", pady=2)
-
+        
         ttk.Label(self.form_n, text="Libellé :").pack(anchor="w")
         ttk.Entry(self.form_n, textvariable=self.libelle_var).pack(fill="x", pady=2)
 
         btn_grid = ttk.Frame(self.form_n, padding=5)
         btn_grid.pack(fill="x", pady=5)
-        ttk.Button(btn_grid, text="➕ Ajouter", command=self._add_connection).grid(row=0, column=0, sticky="ew", padx=2, pady=2)
-        ttk.Button(btn_grid, text="💾 Sauver", command=self._save_o).grid(row=0, column=1, sticky="ew", padx=2, pady=2)
-        ttk.Button(btn_grid, text="🗑️ Supprimer", command=self._delete_connection).grid(row=1, column=0, columnspan=2, sticky="ew", padx=2, pady=2)
-
-        # --- 3. CONFIGURATION DES SCHÉMAS ---
+        ttk.Button(btn_grid, text="➕ Nouveau", command=self._add_connection).grid(row=0, column=0, sticky="ew", padx=2)
+        ttk.Button(btn_grid, text="💾 Sauver", command=self._save_o).grid(row=0, column=1, sticky="ew", padx=2)
+        ttk.Button(btn_grid, text="🗑️ Supprimer", command=self._delete_connection).grid(row=1, column=0, columnspan=2, sticky="ew", pady=5)
+        ttk.Button(btn_grid, text="📥 Importer JSON", command=self._import_json).grid(row=2, column=0, columnspan=2, sticky="ew", pady=2)
+        # 3. SCHÉMAS
         self.f_mag = ttk.LabelFrame(container, text=" 3. Configuration des Schémas ", padding=5)
         self.f_mag.pack(fill="both", expand=True, pady=5)
         
@@ -1156,8 +1217,11 @@ class ParamWindow(tk.Toplevel):
         f_table_m.pack(side="left", fill="both", expand=True)
 
         self.tree_m = ttk.Treeview(f_table_m, columns=("c", "s", "g"), show="headings", height=8)
-        for c, t in [("c", "Code"), ("s", "Schéma"), ("g", "Serveur")]:
+        for c, t in [("c", "Code"), ("s", "Schéma SQL"), ("g", "Serveur lié")]:
             self.tree_m.heading(c, text=t)
+        self.tree_m.column("c", width=50)  # Code
+        self.tree_m.column("s", width=50)  # Schéma SQL
+        self.tree_m.column("g", width=300)  # Serveur lié
         
         scroll_m = ttk.Scrollbar(f_table_m, orient="vertical", command=self.tree_m.yview)
         self.tree_m.configure(yscrollcommand=scroll_m.set)
@@ -1169,15 +1233,19 @@ class ParamWindow(tk.Toplevel):
         form_m.pack(side="right", fill="y")
         form_m.pack_propagate(False)
         
-        ttk.Label(form_m, text="Code Schéma :").pack(anchor="w")
+        ttk.Label(form_m, text="Code (Sonde) :").pack(anchor="w")
         ttk.Entry(form_m, textvariable=self.schema_code_var).pack(fill="x", pady=2)
         ttk.Label(form_m, text="Schéma SQL :").pack(anchor="w")
         ttk.Entry(form_m, textvariable=self.nom_schema_var).pack(fill="x", pady=2)
         ttk.Label(form_m, text="Serveur lié :").pack(anchor="w")
         self.cb_o = ttk.Combobox(form_m, textvariable=self.Schema_oracle_var, state="readonly")
         self.cb_o.pack(fill="x", pady=2)
-        ttk.Button(form_m, text="Sauver Schéma", command=self._save_m).pack(fill="x", pady=10)
-        ttk.Button(form_m, text="Supprimer Schéma", command=self._delete_m).pack(fill="x", pady=5)
+        
+        btn_m_grid = ttk.Frame(form_m)
+        btn_m_grid.pack(fill="x", pady=10)
+        ttk.Button(btn_m_grid, text="💾 Sauver", command=self._save_m).pack(fill="x", pady=2)
+        ttk.Button(btn_m_grid, text="✨ Nouveau", command=self._reset_schema_fields).pack(fill="x", pady=2)
+        ttk.Button(btn_m_grid, text="🗑️ Supprimer", command=self._delete_m).pack(fill="x", pady=2)
 
     def _load_server(self):
         conn = get_db_connection()
@@ -1193,13 +1261,15 @@ class ParamWindow(tk.Toplevel):
         conn = get_db_connection()
         t = self.db_type_var.get()
         self.tree_m.delete(*self.tree_m.get_children())
-        query = """SELECT s.*, o.libelle FROM schemas s 
+        query = """SELECT s.id, s.code, s.schema, s.DB_conn_id, o.libelle FROM schemas s 
                    JOIN DB_conn o ON s.DB_conn_id = o.id 
                    WHERE o.type_db=?"""
         res = conn.execute(query, (t,)).fetchall()
         for r in res:
-            self.tree_m.insert("", "end", iid=r["id"], values=(r["code"], r["schema"], r["libelle"]))
+            display_server = f"{r['DB_conn_id']} | {r['libelle']}"
+            self.tree_m.insert("", "end", iid=r["id"], values=(r["code"], r["schema"], display_server))
         conn.close()
+        self._current_SCHEMA_id = None
 
     def _save_o(self):
         conn = get_db_connection(); cur = conn.cursor()
@@ -1211,15 +1281,12 @@ class ParamWindow(tk.Toplevel):
             else:
                 cur.execute("INSERT INTO DB_conn (type_db, host, port, service, libelle) VALUES (?,?,?,?,?)", 
                             (db_type, self.host_var.get(), self.port_var.get(), self.service_var.get(), self.libelle_var.get()))
-                
-                # Pour SQLite, on crée un schéma "main" automatique pour la compatibilité des jointures
                 if db_type == "SQLite":
                     new_id = cur.lastrowid
                     cur.execute("INSERT INTO schemas (code, schema, DB_conn_id) VALUES (?, 'main', ?)",
                                 (self.libelle_var.get(), new_id))
-            
             conn.commit()
-            messagebox.showinfo("Succès", "Configuration enregistrée.")
+            messagebox.showinfo("Succès", "Serveur enregistré.")
         except Exception as e:
             messagebox.showerror("Erreur", str(e))
         finally:
@@ -1228,17 +1295,28 @@ class ParamWindow(tk.Toplevel):
             if db_type != "SQLite": self._load_schema()
 
     def _save_m(self):
-        if not self.cb_o.get(): return
+        if not self.cb_o.get(): 
+            messagebox.showwarning("Attention", "Veuillez sélectionner un serveur.")
+            return
+        
         oid = self.cb_o.get().split(" | ")[0]
         conn = get_db_connection(); cur = conn.cursor()
-        if self._current_SCHEMA_id: 
-            cur.execute("UPDATE schemas SET code=?, schema=?, DB_conn_id=? WHERE id=?", 
-                        (self.schema_code_var.get(), self.nom_schema_var.get(), oid, self._current_SCHEMA_id))
-        else: 
-            cur.execute("INSERT INTO schemas (code, schema, DB_conn_id) VALUES (?,?,?)", 
-                        (self.schema_code_var.get(), self.nom_schema_var.get(), oid))
-        conn.commit(); conn.close()
-        self._load_schema()
+        
+        try:
+            if self._current_SCHEMA_id: 
+                cur.execute("UPDATE schemas SET code=?, schema=?, DB_conn_id=? WHERE id=?", 
+                            (self.schema_code_var.get(), self.nom_schema_var.get(), oid, self._current_SCHEMA_id))
+            else: 
+                cur.execute("INSERT INTO schemas (code, schema, DB_conn_id) VALUES (?,?,?)", 
+                            (self.schema_code_var.get(), self.nom_schema_var.get(), oid))
+            conn.commit()
+            messagebox.showinfo("Succès", "Schéma enregistré.")
+            self._reset_schema_fields()
+        except Exception as e:
+            messagebox.showerror("Erreur", str(e))
+        finally:
+            conn.close()
+            self._load_schema()
 
     def _on_ora_sel(self, event):
         sel = self.tree_o.selection()
@@ -1251,27 +1329,30 @@ class ParamWindow(tk.Toplevel):
     def _on_schema_sel(self, e):
         s = self.tree_m.selection()
         if s: 
-            self._current_SCHEMA_id = s[0]
+            self._current_SCHEMA_id = s[0] # L'iid est l'ID SQL
             v = self.tree_m.item(s[0], "values")
             self.schema_code_var.set(v[0]); self.nom_schema_var.set(v[1])
             self.cb_o.set(v[2])
 
+    def _reset_schema_fields(self):
+        self._current_SCHEMA_id = None
+        self.schema_code_var.set("")
+        self.nom_schema_var.set("")
+        self.cb_o.set("")
+
     def _add_connection(self):
         self.host_var.set(""); self.service_var.set(""); self.libelle_var.set("")
-        #self.port_var.set("1521" if self.db_type_var.get() == "Oracle" else "0")
         self._current_oracle_id = None
-        
-        if self.db_type_var.get() == "SQLite":
-            self.port_var.set("") 
-        else:
-            self.port_var.set("1521")
+        self.port_var.set("1521" if self.db_type_var.get() != "SQLite" else "")
 
     def _delete_m(self):
-        sel = self.tree_m.selection()
-        if sel and messagebox.askyesno("Confirm", "Supprimer ce schéma ?"):
+        if not self._current_SCHEMA_id: return
+        if messagebox.askyesno("Confirm", "Supprimer ce schéma ?"):
             conn = get_db_connection()
-            conn.execute("DELETE FROM schemas WHERE id=?", (sel[0],))
-            conn.commit(); conn.close(); self._load_schema()
+            conn.execute("DELETE FROM schemas WHERE id=?", (self._current_SCHEMA_id,))
+            conn.commit(); conn.close()
+            self._reset_schema_fields()
+            self._load_schema()
 
     def _delete_connection(self):
         sel_o = self.tree_o.selection()
@@ -1281,7 +1362,87 @@ class ParamWindow(tk.Toplevel):
                 conn.execute("DELETE FROM schemas WHERE DB_conn_id=?", (i,))
                 conn.execute("DELETE FROM DB_conn WHERE id=?", (i,))
             conn.commit(); conn.close()
-            self._load_server(); self._load_schema()   
+            self._load_server(); self._load_schema()
+            
+    def _import_json(self):
+        import json
+        from tkinter import filedialog, messagebox
+        
+        file_path = filedialog.askopenfilename(
+            title="Importer des connexions (JSON)",
+            filetypes=[("Fichiers JSON", "*.json")]
+        )
+        
+        if not file_path:
+            return
+
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            
+            connections = data.get('connections', [])
+            conn = get_db_connection()
+            cur = conn.cursor()
+            
+            s_count = 0 
+            m_count = 0 
+            
+            for item in connections:
+                info = item.get('info', {})
+                
+                # --- RECTIFICATION : On récupère le NAV_FOLDER pour le libellé ---
+                # On nettoie les "+" qui remplacent les espaces dans le JSON SQL Developer
+                nav_folder = info.get('NAV_FOLDER')
+                if nav_folder:
+                    name_conn = nav_folder.replace('+', ' ')
+                else:
+                    name_conn = item.get('name', 'Imported_Conn')
+                
+                host = info.get('hostname')
+                port = info.get('port', '1521')
+                service = info.get('serviceName')
+                user_schema = info.get('user')
+                
+                if host and service:
+                    # 1. On cherche si le serveur (Hôte + Service) existe déjà
+                    cur.execute("""SELECT id FROM DB_conn 
+                                   WHERE host = ? AND service = ? AND type_db = 'Oracle'""", 
+                                (host, service))
+                    row = cur.fetchone()
+                    
+                    if row:
+                        db_id = row['id']
+                    else:
+                        # Nouveau serveur avec le nom de la Grappe (NAV_FOLDER)
+                        cur.execute("""INSERT INTO DB_conn (type_db, host, port, service, libelle) 
+                                       VALUES (?, ?, ?, ?, ?)""",
+                                    ("Oracle", host, port, service, name_conn))
+                        db_id = cur.lastrowid
+                        s_count += 1
+                    
+                    # 2. Insertion du schéma
+                    if user_schema:
+                        # On vérifie si ce schéma existe déjà pour ce serveur
+                        cur.execute("SELECT id FROM schemas WHERE code = ? AND DB_conn_id = ?", 
+                                   (user_schema, db_id))
+                        if not cur.fetchone():
+                            cur.execute("""INSERT INTO schemas (code, schema, DB_conn_id) 
+                                           VALUES (?, ?, ?)""",
+                                        (user_schema, user_schema, db_id))
+                            m_count += 1
+            
+            conn.commit()
+            conn.close()
+            
+            self._load_server()
+            self._load_schema()
+            
+            messagebox.showinfo("Import terminé", 
+                                f"Analyse terminée :\n- {s_count} nouvelles grappes créées\n- {m_count} nouveaux schémas ajoutés")
+            
+        except Exception as e:
+            messagebox.showerror("Erreur Import", f"Erreur lors de l'import : {e}")
+            
 # --- APPLICATION PRINCIPALE ---
 class MultiRequetesApp(tk.Tk):
     def __init__(self):
@@ -1313,13 +1474,15 @@ class MultiRequetesApp(tk.Tk):
         
         ttk.Label(top, text="SGBD :").pack(side="left")
         # Correction : On utilise "SQLite" (un seul L) pour matcher avec le reste du code
-        cb = ttk.Combobox(top, textvariable=self.type_v, values=("Oracle", "MySQL", "PostgreSQL", "SQLite"), state="readonly")
+        cb = ttk.Combobox(top, textvariable=self.type_v, values=("Oracle",  "SQLite"), state="readonly")
         cb.pack(side="left", padx=5)
         cb.bind("<<ComboboxSelected>>", self._on_type_change)
 
         ttk.Label(top, text="Fichier SQL :").pack(side="left", padx=(15, 0))
         self.cb_files = ttk.Combobox(top, textvariable=self.file_v, state="readonly", width=35)
+        self.cb_files.bind("<Button-1>", self._load_files)
         self.cb_files.pack(side="left", padx=5)
+        
         
         ttk.Button(top, text="Paramétrage BDD", command=self._open_bdd).pack(side="right", padx=2)
         ttk.Button(top, text="Paramétrage Sondes", command=self._open_sondes).pack(side="right", padx=2)
@@ -1412,85 +1575,176 @@ class MultiRequetesApp(tk.Tk):
                 if res:
                     targets.append({'host': res['host'], 'schema': res['libelle'], 'port': '', 'service': ''})
         else:
+            # --- 1. Gestion des SCHÉMAS individuels ---
             selected_m = self.l_m.curselection()
             for i in selected_m:
                 name = self.l_m.get(i)
-                res = conn_sqlite.execute("SELECT s.schema, o.host, o.port, o.service FROM schemas s JOIN DB_conn o ON s.DB_conn_id = o.id WHERE s.code = ?", (name,)).fetchone()
-                if res: targets.append(dict(res))
+                res = conn_sqlite.execute("""
+                    SELECT s.schema, o.host, o.port, o.service 
+                    FROM schemas s 
+                    JOIN DB_conn o ON s.DB_conn_id = o.id 
+                    WHERE s.code = ?""", (name,)).fetchone()
+                if res: 
+                    targets.append(dict(res))
+
+            # --- 2. Gestion des GRAPPES / SERVEURS ---
+            selected_g = self.l_g.curselection()
+            for i in selected_g:
+                server_libelle = self.l_g.get(i)
+                res_g = conn_sqlite.execute("""
+                    SELECT s.schema, o.host, o.port, o.service 
+                    FROM schemas s
+                    JOIN DB_conn o ON s.DB_conn_id = o.id
+                    WHERE o.libelle = ?""", (server_libelle,)).fetchall()
+                
+                for r in res_g:
+                    target_dict = dict(r)
+                    if target_dict not in targets:
+                        targets.append(target_dict)
+
         conn_sqlite.close()
 
         if not targets:
-            self._log("Aucune cible sélectionnée.", "WARN")
+            self._log("Aucune cible sélectionnée (Schéma ou Grappe).", "WARN")
             return
 
-        user, pwd = (None, None)
+        # --- Authentification : On ne demande que le MOT DE PASSE ---
+        pwd = None
         if db_type != "SQLite":
-            user, pwd = ask_credentials(self)
-            if not user or not pwd: return
+            # On utilise ta nouvelle fonction simplifiée (uniquement password)
+            pwd = ask_credentials(self) 
+            if not pwd: 
+                self._log("Lancement annulé : mot de passe manquant.", "WARN")
+                return
 
         try:
-            with open(os.path.join("requete", sql_file), "r", encoding="utf-8") as f:
-                sql_content = f.read()
-            self._execute_on_engine(db_type, targets, sql_content, user, pwd)
+            req_path = os.path.join("requete", sql_file)
+            with open(req_path, "r", encoding="utf-8") as f:
+                sql_content = f.read().strip()
+            
+           # On détecte si c'est du PL/SQL
+            is_plsql = sql_content.upper().startswith(("BEGIN", "DECLARE"))
+            
+            # On ne retire le ; final que si ce n'est PAS du PL/SQL
+            if not is_plsql and sql_content.endswith(';'):
+                sql_content = sql_content[:-1].strip()
+                
+            # Lancement de l'exécution
+            self._execute_on_engine(db_type, targets, sql_content,  pwd)
+            
         except Exception as e:
             self._log(f"Erreur lecture fichier : {e}", "ERROR")
 
-    def _execute_on_engine(self, db_type, targets, sql, user=None, pwd=None):
+    def _execute_on_engine(self, db_type, targets, sql, pwd=None):
+        """Exécute SQL/PLSQL avec confirmation, gestion du COMMIT et export des LOGS Oracle"""
+        from tkinter import messagebox
+        import os
         import csv
         from datetime import datetime
+
+        # 1. ANALYSE DU TYPE DE REQUÊTE
+        sql_raw = sql.strip()
+        sql_upper = sql_raw.upper()
         
-        # Création du dossier result s'il n'existe pas
+        # Détection si c'est une action sensible
+        is_write_op = sql_upper.startswith(("UPDATE", "INSERT", "DELETE", "DROP", "ALTER", "CREATE", "TRUNCATE", "BEGIN", "DECLARE"))
+
+        # 2. DEMANDE DE CONFIRMATION
+        if is_write_op:
+            msg = f"Attention : La requête semble contenir des instructions de modification ou du PL/SQL.\n\n"
+            msg += f"Elle va être exécutée sur {len(targets)} cible(s).\n\n"
+            msg += "Voulez-vous vraiment continuer ?"
+            
+            confirm = messagebox.askyesno("Confirmation d'écriture", msg, icon='warning')
+            if not confirm:
+                self._log("❌ Opération annulée par l'utilisateur.", "WARN")
+                return
+
+        # 3. PRÉPARATION DU DOSSIER RÉSULTAT
         if not os.path.exists("result"):
             os.makedirs("result")
 
-        self._log(f"Exécution sur {len(targets)} cible(s)...")
+        self._log(f"🚀 Lancement de l'exécution sur {len(targets)} cible(s)...")
         
         for t in targets:
             try:
                 schema_name = t.get('schema', 'Base')
                 self._log(f"Connexion à {schema_name}...")
                 
-                if db_type == "SQLite":
-                    conn = sqlite3.connect(t['host'])
-                    cursor = conn.cursor()
-                    # On utilise execute pour pouvoir récupérer les résultats
-                    cursor.execute(sql)
-                elif db_type == "Oracle":
+                if db_type == "Oracle":
                     import oracledb
                     dsn = oracledb.makedsn(t['host'], t['port'], service_name=t['service'])
-                    conn = oracledb.connect(user=user, password=pwd, dsn=dsn)
+                    conn = oracledb.connect(user=schema_name, password=pwd, dsn=dsn)
+                    cursor = conn.cursor()
+                    
+                    # --- ACTIVATION DES LOGS ORACLE ---
+                    cursor.callproc("dbms_output.enable", (None,))
+                    
+                    # Détection PL/SQL vs SQL
+                    is_plsql = sql_upper.startswith(("BEGIN", "DECLARE"))
+
+                    if is_plsql:
+                        # On garde le bloc entier pour le PL/SQL
+                        if sql_raw.endswith('/'): sql_raw = sql_raw[:-1].strip()
+                        queries = [sql_raw]
+                    else:
+                        # On découpe pour le SQL classique
+                        queries = [q.strip() for q in sql_raw.split(';') if q.strip()]
+
+                    # Exécution des requêtes
+                    for query in queries:
+                        cursor.execute(query)
+                    
+                    # --- RÉCUPÉRATION DES LOGS (DBMS_OUTPUT) ---
+                    dbms_logs = []
+                    status_var = cursor.var(oracledb.NUMBER)
+                    line_var = cursor.var(oracledb.STRING)
+                    while True:
+                        cursor.callproc("dbms_output.get_line", (line_var, status_var))
+                        if status_var.getvalue() != 0: break
+                        dbms_logs.append(line_var.getvalue())
+
+                    # --- ÉCRITURE DU FICHIER LOG (si logs présents) ---
+                    if dbms_logs:
+                        timestamp_log = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        log_filename = f"result/LOG_{schema_name}_{timestamp_log}.log"
+                        with open(log_filename, 'w', encoding='utf-8') as f_log:
+                            f_log.write("\n".join(dbms_logs))
+                        self._log(f"📄 Logs Oracle extraits dans {log_filename}", "OK")
+
+                    # --- TRAITEMENT DES RÉSULTATS (CSV) ---
+                    if cursor.description:
+                        colnames = [d[0] for d in cursor.description]
+                        rows = cursor.fetchall()
+                        if rows:
+                            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                            filename = f"result/{schema_name}_{timestamp}.csv"
+                            with open(filename, 'w', newline='', encoding='utf-8') as f:
+                                writer = csv.writer(f, delimiter=';')
+                                writer.writerow(colnames)
+                                writer.writerows(rows)
+                            self._log(f"SUCCÈS : {len(rows)} lignes dans {filename}", "OK")
+                        else:
+                            self._log(f"INFO : Aucun résultat pour {schema_name}.", "INFO")
+                    else:
+                        # Commit pour les opérations sans retour de lignes
+                        conn.commit()
+                        self._log(f"✅ Succès : Commande validée (COMMIT) sur {schema_name}.", "OK")
+                
+                    conn.close()
+
+                elif db_type == "SQLite":
+                    import sqlite3
+                    conn = sqlite3.connect(t['host'])
                     cursor = conn.cursor()
                     cursor.execute(sql)
-                
-                # --- RÉCUPÉRATION ET ÉCRITURE DES RÉSULTATS ---
-                # On ne tente l'écriture CSV que s'il y a des colonnes (donc un SELECT)
-                if cursor.description:
-                    colnames = [d[0] for d in cursor.description]
-                    rows = cursor.fetchall()
-                    
-                    if rows:
-                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                        filename = f"result/{schema_name}_{timestamp}.csv"
-                        
-                        with open(filename, 'w', newline='', encoding='utf-8') as f:
-                            writer = csv.writer(f, delimiter=';')
-                            writer.writerow(colnames) # En-têtes
-                            writer.writerows(rows)     # Données
-                            
-                        self._log(f"SUCCÈS : {len(rows)} lignes extraites dans {filename}", "OK")
-                    else:
-                        self._log(f"INFO : Requête terminée, mais aucun résultat retourné.", "INFO")
-                else:
-                    # Cas d'un UPDATE, INSERT, DELETE
                     conn.commit()
-                    self._log(f"SUCCÈS : Commande exécutée avec succès.", "OK")
-                
-                conn.close()
+                    conn.close()
 
             except Exception as e:
                 self._log(f"ÉCHEC sur {t.get('schema', 'Base')}: {e}", "ERROR")
 
-        self._log("Toutes les exécutions sont terminées.")
+        self._log("🏁 Toutes les exécutions sont terminées.")
 
     def _on_launch_probes(self):
         """Lance le moteur de sondes"""
@@ -1501,9 +1755,7 @@ class MultiRequetesApp(tk.Tk):
             if not user or not pwd: return
 
         try:
-            # CORRECTION ICI : Assure-toi que ProbeEngine est défini dans ton script 
-            # ou importe-le avec le bon nom de fichier.
-            # Si ProbeEngine est dans le même fichier, supprime l'import.
+
             engine = ProbeEngine(get_db_connection)
             engine.run_all(db_filter=db_type, user=user, pwd=pwd)
         except Exception as e:
@@ -1517,12 +1769,13 @@ class MultiRequetesApp(tk.Tk):
     def _open_bdd(self): self.withdraw(); ParamWindow(self)
     def _open_sondes(self): self.withdraw(); SondeWindow(self)
     
-    def _load_files(self):
+    def _load_files(self, event=None): # Ajout de event=None
         if os.path.exists("requete"):
             files = [f for f in os.listdir("requete") if f.endswith(".sql")]
             self.cb_files["values"] = sorted(files)
-            if files and not self.file_v.get(): self.cb_files.current(0)
-    
+            # On ne change la sélection que si rien n'est sélectionné
+            if files and not self.file_v.get(): 
+                self.cb_files.current(0)
 
 if __name__ == "__main__":
     app = MultiRequetesApp(); app.mainloop()

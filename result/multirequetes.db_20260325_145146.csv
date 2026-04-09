@@ -1,0 +1,11 @@
+id;nom_sonde;type_sonde;fonction_id;type_alerte;type_db;serveur_id;requete;ordre;lien_MOP
+1;Controle appro;Fonctionnelle;5;Majeur;Oracle;5;dsqdqqz;2;
+2;controle referencement;Fonctionnelle;5;Majeur;Oracle;6;zzqeezqea;1;
+3;controle filiere;Fonctionnelle;1;Majeur;Oracle;5;ezezaeazaz;0;
+4;Controle facture;Fonctionnelle;4;;Oracle;5;qdqdsqdqs;0;
+5;controle BL;;5;;Oracle;5;dqdsqqs;0;
+6;Controle reception;;2;;Oracle;5;qqdqsqd;0;
+7;test mysql;;4;;MySQL;;sdfsfsd;0;
+8;CTRL BDD;Fonctionnelle;7;Critique;SQLite;;SELECT type_db , count(1) FROM DB_conn o group by type_db;0;https://eu.sharepoint.ent.cgi.com/sites/CL9777/Documentation/600%20-%20RUN/603%20-%20Exploitation/Suivi_exploitation.xlsx?d=w0435d3ef03424e88ade7a23ba71cf123
+9;controle BDD 2;Fonctionnelle;6;Mineur;SQLite;;SELECT type_db , count(1) FROM DB_conn o group by type_db;1;https://eu.sharepoint.ent.cgi.com/sites/CL9777/Documentation/600%20-%20RUN/603%20-%20Exploitation/Alertes%20Flux%20Weldom%20-%20STORE.xlsx?d=wc4b59a307c8748818996d2621f88080f
+10;CTRL SONDE;Fonctionnelle;6;Majeur;SQLite;;SELECT type_db, count(1) from sondes group by type_db;0;

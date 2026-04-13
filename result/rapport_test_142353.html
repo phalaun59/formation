@@ -1,0 +1,238 @@
+
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 40px 0; background-color: #444; }
+                .page-a4 {
+                    background: white; width: 95%; max-width: 1400px; margin: 0 auto;
+                    padding: 30px; box-shadow: 0 0 20px rgba(0,0,0,0.5); min-height: 100vh;
+                }
+                header { border-bottom: 2px solid #2c3e50; margin-bottom: 30px; text-align: center; padding-bottom: 10px; }
+                h1 { margin: 0; color: #2c3e50; }
+                .date { color: #7f8c8d; font-style: italic; font-size: 0.9em; }
+                .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; align-items: start; }
+                .function-block { border: 1px solid #ddd; border-radius: 8px; padding: 15px; background: #fff; }
+                .function-title { font-weight: bold; text-transform: uppercase; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px; color: #2c3e50; }
+                .sonde-card { background: #fdfdfd; border: 1px solid #eee; border-radius: 4px; margin-bottom: 20px; padding: 10px; }
+                .sonde-header { font-weight: bold; margin-bottom: 10px; display: flex; justify-content: space-between; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px; }
+                .sonde-content { display: flex; gap: 15px; align-items: stretch; }
+                .col-schema { flex: 0 0 150px; background: #f1f2f6; border-radius: 4px; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: bold; font-size: 0.85em; color: #2c3e50; padding: 10px; border: 1px solid #d1d8e0; }
+                .col-result { flex: 1; overflow-x: auto; }
+                .sql-box { font-family: monospace; font-size: 0.75em; background: #272822; color: #f8f8f2; padding: 8px; margin: 5px 0; border-radius: 3px; white-space: pre-wrap; }
+                .mop-btn { text-decoration: none; background: #34495e; color: white; padding: 2px 8px; border-radius: 3px; font-size: 0.75em; }
+                table { border-collapse: collapse; width: 100%; font-size: 0.85em; background: white; }
+                th { background-color: #f8f9fa; padding: 8px; border: 1px solid #dee2e6; text-align: left; }
+                td { padding: 6px; border: 1px solid #dee2e6; }
+                .error { color: #e74c3c; font-weight: bold; background: #fee; padding: 10px; border-radius: 4px; font-size: 0.8em; }
+                @media (max-width: 1200px) { .report-grid { grid-template-columns: 1fr; } }
+            </style>
+        </head>
+        <body>
+            <div class="page-a4">
+                <header>
+                    <h1>📊 Rapport d'Exploitation</h1>
+                    <div class="date">Généré le 09/04/2026 14:24:05</div>
+                </header>
+                <div class="report-grid">
+        <div class="function-block"><div class="function-title">📂 Parametrage</div>
+                <div class="sonde-card" style="border-top: 3px solid #e67e22;">
+                    <div class="sonde-header">
+                        <span style="color: #e67e22;">● Controle parametrage</span>
+                        
+                    </div>
+                    <div class="sonde-content">
+                
+                        <div class="col-schema">
+                            <div>
+                                <small style="color:#7f8c8d; font-weight:normal;">SCHEMA</small><br>
+                                WIFR656
+                            </div>
+                        </div>
+                    <div class="col-result">
+                    <details style="margin-bottom: 5px;">
+                        <summary style="font-size: 0.75em; cursor: pointer; color: #3498db;">SQL</summary>
+                        <div class="sql-box">select count(1)as NB_PARAM_VCO from mgvco</div>
+                    </details>
+                <div class='error'>❌ ORA-01017: invalid username/password; logon denied
+Help: https://docs.oracle.com/error-help/db/ora-01017/</div></div></div></div>
+                <div class="sonde-card" style="border-top: 3px solid #e67e22;">
+                    <div class="sonde-header">
+                        <span style="color: #e67e22;">● Controle parametrage</span>
+                        
+                    </div>
+                    <div class="sonde-content">
+                
+                        <div class="col-schema">
+                            <div>
+                                <small style="color:#7f8c8d; font-weight:normal;">SCHEMA</small><br>
+                                WSFR406
+                            </div>
+                        </div>
+                    <div class="col-result">
+                    <details style="margin-bottom: 5px;">
+                        <summary style="font-size: 0.75em; cursor: pointer; color: #3498db;">SQL</summary>
+                        <div class="sql-box">select count(1)as NB_PARAM_VCO from mgvco</div>
+                    </details>
+                <div class='error'>❌ ORA-01017: invalid username/password; logon denied
+Help: https://docs.oracle.com/error-help/db/ora-01017/</div></div></div></div>
+                <div class="sonde-card" style="border-top: 3px solid #e67e22;">
+                    <div class="sonde-header">
+                        <span style="color: #e67e22;">● Controle parametrage</span>
+                        
+                    </div>
+                    <div class="sonde-content">
+                
+                        <div class="col-schema">
+                            <div>
+                                <small style="color:#7f8c8d; font-weight:normal;">SCHEMA</small><br>
+                                WSFR408
+                            </div>
+                        </div>
+                    <div class="col-result">
+                    <details style="margin-bottom: 5px;">
+                        <summary style="font-size: 0.75em; cursor: pointer; color: #3498db;">SQL</summary>
+                        <div class="sql-box">select count(1)as NB_PARAM_VCO from mgvco</div>
+                    </details>
+                <div class='error'>❌ ORA-01017: invalid username/password; logon denied
+Help: https://docs.oracle.com/error-help/db/ora-01017/</div></div></div></div>
+                <div class="sonde-card" style="border-top: 3px solid #e67e22;">
+                    <div class="sonde-header">
+                        <span style="color: #e67e22;">● Controle parametrage</span>
+                        
+                    </div>
+                    <div class="sonde-content">
+                
+                        <div class="col-schema">
+                            <div>
+                                <small style="color:#7f8c8d; font-weight:normal;">SCHEMA</small><br>
+                                WSFR418
+                            </div>
+                        </div>
+                    <div class="col-result">
+                    <details style="margin-bottom: 5px;">
+                        <summary style="font-size: 0.75em; cursor: pointer; color: #3498db;">SQL</summary>
+                        <div class="sql-box">select count(1)as NB_PARAM_VCO from mgvco</div>
+                    </details>
+                <div class='error'>❌ ORA-01017: invalid username/password; logon denied
+Help: https://docs.oracle.com/error-help/db/ora-01017/</div></div></div></div></div><div class="function-block"><div class="function-title">📂 REFERENCEMENT</div>
+                <div class="sonde-card" style="border-top: 3px solid #3498db;">
+                    <div class="sonde-header">
+                        <span style="color: #3498db;">● controle volume article</span>
+                        
+                    </div>
+                    <div class="sonde-content">
+                
+                        <div class="col-schema">
+                            <div>
+                                <small style="color:#7f8c8d; font-weight:normal;">SCHEMA</small><br>
+                                WIFR656
+                            </div>
+                        </div>
+                    <div class="col-result">
+                    <details style="margin-bottom: 5px;">
+                        <summary style="font-size: 0.75em; cursor: pointer; color: #3498db;">SQL</summary>
+                        <div class="sql-box">select count(1)as NB_article from mgart</div>
+                    </details>
+                <div class='error'>❌ ORA-01017: invalid username/password; logon denied
+Help: https://docs.oracle.com/error-help/db/ora-01017/</div></div></div></div>
+                <div class="sonde-card" style="border-top: 3px solid #3498db;">
+                    <div class="sonde-header">
+                        <span style="color: #3498db;">● controle volume fournisseur</span>
+                        
+                    </div>
+                    <div class="sonde-content">
+                
+                        <div class="col-schema">
+                            <div>
+                                <small style="color:#7f8c8d; font-weight:normal;">SCHEMA</small><br>
+                                WIFR656
+                            </div>
+                        </div>
+                    <div class="col-result">
+                    <details style="margin-bottom: 5px;">
+                        <summary style="font-size: 0.75em; cursor: pointer; color: #3498db;">SQL</summary>
+                        <div class="sql-box">select count(1)as NB_fournisseur from mgfou</div>
+                    </details>
+                <div class='error'>❌ ORA-01017: invalid username/password; logon denied
+Help: https://docs.oracle.com/error-help/db/ora-01017/</div></div></div></div>
+                <div class="sonde-card" style="border-top: 3px solid #3498db;">
+                    <div class="sonde-header">
+                        <span style="color: #3498db;">● controle volume article</span>
+                        
+                    </div>
+                    <div class="sonde-content">
+                
+                        <div class="col-schema">
+                            <div>
+                                <small style="color:#7f8c8d; font-weight:normal;">SCHEMA</small><br>
+                                WSFR406
+                            </div>
+                        </div>
+                    <div class="col-result">
+                    <details style="margin-bottom: 5px;">
+                        <summary style="font-size: 0.75em; cursor: pointer; color: #3498db;">SQL</summary>
+                        <div class="sql-box">select count(1)as NB_article from mgart</div>
+                    </details>
+                <div class='error'>❌ ORA-01017: invalid username/password; logon denied
+Help: https://docs.oracle.com/error-help/db/ora-01017/</div></div></div></div>
+                <div class="sonde-card" style="border-top: 3px solid #3498db;">
+                    <div class="sonde-header">
+                        <span style="color: #3498db;">● controle volume article</span>
+                        
+                    </div>
+                    <div class="sonde-content">
+                
+                        <div class="col-schema">
+                            <div>
+                                <small style="color:#7f8c8d; font-weight:normal;">SCHEMA</small><br>
+                                WSFR408
+                            </div>
+                        </div>
+                    <div class="col-result">
+                    <details style="margin-bottom: 5px;">
+                        <summary style="font-size: 0.75em; cursor: pointer; color: #3498db;">SQL</summary>
+                        <div class="sql-box">select count(1)as NB_article from mgart</div>
+                    </details>
+                <div class='error'>❌ ORA-01017: invalid username/password; logon denied
+Help: https://docs.oracle.com/error-help/db/ora-01017/</div></div></div></div>
+                <div class="sonde-card" style="border-top: 3px solid #3498db;">
+                    <div class="sonde-header">
+                        <span style="color: #3498db;">● controle volume article</span>
+                        
+                    </div>
+                    <div class="sonde-content">
+                
+                        <div class="col-schema">
+                            <div>
+                                <small style="color:#7f8c8d; font-weight:normal;">SCHEMA</small><br>
+                                WSFR418
+                            </div>
+                        </div>
+                    <div class="col-result">
+                    <details style="margin-bottom: 5px;">
+                        <summary style="font-size: 0.75em; cursor: pointer; color: #3498db;">SQL</summary>
+                        <div class="sql-box">select count(1)as NB_article from mgart</div>
+                    </details>
+                <div class='error'>❌ ORA-01017: invalid username/password; logon denied
+Help: https://docs.oracle.com/error-help/db/ora-01017/</div></div></div></div>
+                <div class="sonde-card" style="border-top: 3px solid #3498db;">
+                    <div class="sonde-header">
+                        <span style="color: #3498db;">● controle volume fournisseur</span>
+                        
+                    </div>
+                    <div class="sonde-content">
+                
+                        <div class="col-schema">
+                            <div>
+                                <small style="color:#7f8c8d; font-weight:normal;">SCHEMA</small><br>
+                                WSFR418
+                            </div>
+                        </div>
+                    <div class="col-result">
+                    <details style="margin-bottom: 5px;">
+                        <summary style="font-size: 0.75em; cursor: pointer; color: #3498db;">SQL</summary>
+                        <div class="sql-box">select count(1)as NB_fournisseur from mgfou</div>
+                    </details>
+                <div class='error'>❌ ORA-01017: invalid username/password; logon denied
+Help: https://docs.oracle.com/error-help/db/ora-01017/</div></div></div></div></div></div></div></body></html>

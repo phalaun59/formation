@@ -1,0 +1,111 @@
+
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 40px 0; background-color: #444; }
+                .page-a4 { background: white; width: 95%; max-width: 1400px; margin: 0 auto; padding: 30px; box-shadow: 0 0 20px rgba(0,0,0,0.5); min-height: 100vh; }
+                header { border-bottom: 2px solid #2c3e50; margin-bottom: 30px; text-align: center; padding-bottom: 10px; }
+                h1 { margin: 0; color: #2c3e50; }
+                .date { color: #7f8c8d; font-style: italic; font-size: 0.9em; }
+                
+                .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; align-items: start; }
+                .function-block { border: 1px solid #ddd; border-radius: 8px; padding: 15px; background: #fff; margin-bottom: 20px; }
+                .function-title { font-weight: bold; text-transform: uppercase; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px; color: #2c3e50; }
+                
+                .sonde-card { background: #fdfdfd; border: 1px solid #eee; border-radius: 4px; margin-bottom: 25px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+                .sonde-title { font-weight: bold; font-size: 1.1em; margin-bottom: 12px; padding-bottom: 5px; border-bottom: 2px solid #34495e; display: flex; justify-content: space-between; }
+                
+                .execution-row { display: flex; gap: 15px; margin-bottom: 15px; padding-top: 10px; border-top: 1px dashed #ccc; }
+                .execution-row:first-of-type { border-top: none; padding-top: 0; }
+
+                .col-schema { flex: 0 0 150px; background: #f1f2f6; border-radius: 4px; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: bold; font-size: 0.85em; color: #2c3e50; padding: 10px; border: 1px solid #d1d8e0; align-self: flex-start; }
+                .col-result { flex: 1; overflow-x: auto; min-width: 0; }
+                
+                .sql-box { font-family: monospace; font-size: 0.75em; background: #272822; color: #f8f8f2; padding: 8px; margin: 5px 0; border-radius: 3px; }
+                .mop-btn { text-decoration: none; background: #34495e; color: white; padding: 3px 10px; border-radius: 3px; font-size: 0.75em; font-weight: normal; }
+                
+                table { border-collapse: collapse; width: 100%; font-size: 0.85em; background: white; }
+                th { background-color: #f8f9fa; padding: 8px; border: 1px solid #dee2e6; text-align: left; }
+                td { padding: 6px; border: 1px solid #dee2e6; }
+                .error { color: #e74c3c; font-weight: bold; background: #fee; padding: 10px; border-radius: 4px; font-size: 0.8em; }
+                
+                @media (max-width: 1200px) { .report-grid { grid-template-columns: 1fr; } }
+            </style>
+        </head>
+        <body>
+            <div class="page-a4">
+                <header>
+                    <h1>📊 Rapport d'Exploitation</h1>
+                    <div class="date">Généré le 09/04/2026 14:33:12</div>
+                </header>
+                <div class="report-grid">
+        <div class="function-block"><div class="function-title">📂 Parametrage</div>
+                <div class="sonde-card">
+                    <div class="sonde-title" style="color: #e67e22; border-bottom-color: #e67e22;">
+                        <span>● Controle parametrage</span>
+                        
+                    </div>
+                    
+                    <details style="margin-bottom: 15px;">
+                        <summary style="font-size: 0.75em; cursor: pointer; color: #3498db; font-weight: bold;">📜 Voir la requête SQL commune</summary>
+                        <div class="sql-box">select count(1)as NB_PARAM_VCO from mgvco</div>
+                    </details>
+                <div class="execution-row">
+                        <div class="col-schema">
+                            <div><small style="color:#7f8c8d;">SCHEMA</small><br>WIFR656</div>
+                        </div>
+                        <div class="col-result"><div class='error'>❌ ORA-01017: invalid username/password; logon denied
+Help: https://docs.oracle.com/error-help/db/ora-01017/</div></div></div><div class="execution-row">
+                        <div class="col-schema">
+                            <div><small style="color:#7f8c8d;">SCHEMA</small><br>WSFR406</div>
+                        </div>
+                        <div class="col-result"><div class='error'>❌ ORA-01017: invalid username/password; logon denied
+Help: https://docs.oracle.com/error-help/db/ora-01017/</div></div></div><div class="execution-row">
+                        <div class="col-schema">
+                            <div><small style="color:#7f8c8d;">SCHEMA</small><br>WSFR408</div>
+                        </div>
+                        <div class="col-result"><div class='error'>❌ ORA-01017: invalid username/password; logon denied
+Help: https://docs.oracle.com/error-help/db/ora-01017/</div></div></div><div class="execution-row">
+                        <div class="col-schema">
+                            <div><small style="color:#7f8c8d;">SCHEMA</small><br>WSFR418</div>
+                        </div>
+                        <div class="col-result"><div class='error'>❌ ORA-01017: invalid username/password; logon denied
+Help: https://docs.oracle.com/error-help/db/ora-01017/</div></div></div></div></div><div class="function-block"><div class="function-title">📂 REFERENCEMENT</div>
+                <div class="sonde-card">
+                    <div class="sonde-title" style="color: #3498db; border-bottom-color: #3498db;">
+                        <span>● controle volume article</span>
+                        
+                    </div>
+                    
+                    <details style="margin-bottom: 15px;">
+                        <summary style="font-size: 0.75em; cursor: pointer; color: #3498db; font-weight: bold;">📜 Voir la requête SQL commune</summary>
+                        <div class="sql-box">select count(1)as NB_article from mgart</div>
+                    </details>
+                <div class="execution-row">
+                        <div class="col-schema">
+                            <div><small style="color:#7f8c8d;">SCHEMA</small><br>WELCEN</div>
+                        </div>
+                        <div class="col-result"><div class='error'>❌ ORA-01017: invalid username/password; logon denied
+Help: https://docs.oracle.com/error-help/db/ora-01017/</div></div></div></div>
+                <div class="sonde-card">
+                    <div class="sonde-title" style="color: #3498db; border-bottom-color: #3498db;">
+                        <span>● controle volume fournisseur</span>
+                        
+                    </div>
+                    
+                    <details style="margin-bottom: 15px;">
+                        <summary style="font-size: 0.75em; cursor: pointer; color: #3498db; font-weight: bold;">📜 Voir la requête SQL commune</summary>
+                        <div class="sql-box">select count(1)as NB_fournisseur from mgfou</div>
+                    </details>
+                <div class="execution-row">
+                        <div class="col-schema">
+                            <div><small style="color:#7f8c8d;">SCHEMA</small><br>WIFR656</div>
+                        </div>
+                        <div class="col-result"><div class='error'>❌ ORA-01017: invalid username/password; logon denied
+Help: https://docs.oracle.com/error-help/db/ora-01017/</div></div></div><div class="execution-row">
+                        <div class="col-schema">
+                            <div><small style="color:#7f8c8d;">SCHEMA</small><br>WSFR418</div>
+                        </div>
+                        <div class="col-result"><div class='error'>❌ ORA-01017: invalid username/password; logon denied
+Help: https://docs.oracle.com/error-help/db/ora-01017/</div></div></div></div></div></div></div></body></html>

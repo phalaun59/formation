@@ -1,0 +1,4580 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Rapport de Comparaison - compare 1</title>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 30px; background-color: #f8f9fa; color: #333; }
+                h1 { color: #2c3e50; text-align: center; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+                .pivot-info { background: #ebf5fb; padding: 15px; border-left: 6px solid #3498db; margin-bottom: 25px; border-radius: 4px; }
+                .schema-block { background: white; padding: 25px; margin-bottom: 40px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+                h2 { color: #2980b9; margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+                
+                table { border-collapse: collapse; width: 100%; margin: 15px 0; font-size: 0.9em; table-layout: auto; }
+                th, td { border: 1px solid #dee2e6; padding: 12px; text-align: left; }
+                th { background-color: #f8f9fa; font-weight: bold; }
+
+                /* Styles spécifiques aux types d'écarts */
+                .missing-title { color: #e74c3c; border-left: 4px solid #e74c3c; padding-left: 10px; }
+                .table-missing th { background-color: #fdedec; color: #c0392b; }
+                
+                .extra-title { color: #27ae60; border-left: 4px solid #27ae60; padding-left: 10px; }
+                .table-extra th { background-color: #eafaf1; color: #1e8449; }
+                
+                .diff-title { color: #d35400; border-left: 4px solid #d35400; padding-left: 10px; }
+                .table-diff th { background-color: #fef5e7; color: #a04000; }
+                .col-name { color: #e67e22; font-weight: bold; font-family: monospace; }
+                .val-ref { background-color: #fdedec; }
+                .val-tgt { background-color: #eafaf1; }
+                
+                .no-diff { background-color: #d4edda; color: #155724; padding: 15px; border-radius: 5px; text-align: center; font-weight: bold; }
+                .col-warning { color: #666; font-style: italic; background: #eee; padding: 8px; border-radius: 3px; font-size: 0.85em; }
+                .footer { text-align: center; margin-top: 50px; color: #95a5a6; font-size: 0.8em; }
+            </style>
+        </head>
+        <body>
+            <h1>Rapport de Comparaison : compare 1</h1>
+            <div class="pivot-info">
+                <strong>Source de référence (Pivot) :</strong> VDR_WELDOM_QUALIF 2 DEUX 9V - WIFR656<br>
+                <strong>Date de génération :</strong> compare 1
+            </div>
+        <div class='schema-block'><h2>Environnement : VDR_WELDOM_QUALIF 2 DEUX 9V - WSFR408</h2><h3 class='missing-title'>❌ Lignes présentes en Pivot mais ABSENTES ici (4)</h3><table class='table-missing'><thead><tr><th>VCO_DSLOGORI</th><th>VCO_CDRUBORI</th><th>VCO_ZNVLRUBO</th><th>VCO_ZNVLRUBD</th><th>VCO_FLSELEC</th></tr></thead><tbody><tr><td>MYCGI     </td><td>CUST_SRCH </td><td>URL                           </td><td>https://gtdp-uat1.priv.nprd.api.devportal.adeo.cloud/api-altair/v3/n/customers/search/</td><td>b'T'</td></tr><tr><td>MYCGI     </td><td>CUST_SRCH </td><td>APPLICATION                   </td><td>Vendeur</td><td>b'T'</td></tr><tr><td>MYCGI     </td><td>CUST_SRCH </td><td>API_KEY                       </td><td>VVtOZi7lrQQK5kprrOKjXQJmtR50nBYZ</td><td>b'T'</td></tr><tr><td>MYCGI     </td><td>CUST_SRCH </td><td>PROVIDER                      </td><td>ALTAIR</td><td>b'T'</td></tr></tbody></table><h3 class='extra-title'>➕ Lignes présentes ici mais ABSENTES en Pivot (14)</h3><table class='table-extra'><thead><tr><th>VCO_DSLOGORI</th><th>VCO_CDRUBORI</th><th>VCO_ZNVLRUBO</th><th>VCO_ZNVLRUBD</th><th>VCO_FLSELEC</th></tr></thead><tbody><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>312                           </td><td>B09</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>405                           </td><td>B6</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>406                           </td><td>CAPSUD</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>408                           </td><td>B4</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>410                           </td><td>DECOBOIS</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>412                           </td><td>CHAMBY</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>414                           </td><td>DCB3</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>416                           </td><td>CHALET</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>420                           </td><td>ANGLE</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>422                           </td><td>FREDIS</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>424                           </td><td>SORADIS</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>426                           </td><td>CRISTAL</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>427                           </td><td>TUBISTRES</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>418                           </td><td>GAROLLES</td><td>b'F'</td></tr></tbody></table><h3 class='diff-title'>⚖️ Détail des cellules divergentes (49)</h3>
+                <table class='table-diff'>
+                    <thead>
+                        <tr>
+                            <th>Clé Unique (Index)</th>
+                            <th>Colonne en écart</th>
+                            <th>Valeur Pivot (Réf)</th>
+                            <th>Valeur Cible</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                
+                        <tr>
+                            <td><b>SYNART    </b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">VCO_DSLOGORI
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        CDMAG     
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+Name: VCO_CDRUBORI, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+Name: VCO_CDRUBORI, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>SYNART    </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+SYNART        30                            
+SYNART        30                            
+SYNART        30                            
+SYNART        1                             
+SYNART        1                             
+SYNART        1                             
+SYNART        10                            
+SYNART        10                            
+SYNART        10                            
+SYNART        94                            
+SYNART        94                            
+SYNART        94                            
+SYNART        96                            
+SYNART        96                            
+SYNART        96                            
+SYNART        98                            
+SYNART        98                            
+SYNART        98                            
+SYNART        617                           
+SYNART        617                           
+SYNART        102                           
+SYNART        617                           
+SYNART        406                           
+SYNART        406                           
+SYNART        406                           
+SYNART        408                           
+SYNART        408                           
+SYNART        408                           
+SYNART        412                           
+SYNART        412                           
+SYNART        412                           
+SYNART        418                           
+SYNART        418                           
+SYNART        418                           
+SYNART        427                           
+SYNART        427                           
+SYNART        427                           
+SYNART        656                           
+SYNART        656                           
+SYNART        656                           
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+SYNART        30                            
+SYNART        30                            
+SYNART        30                            
+SYNART        1                             
+SYNART        1                             
+SYNART        1                             
+SYNART        10                            
+SYNART        10                            
+SYNART        10                            
+SYNART        94                            
+SYNART        94                            
+SYNART        94                            
+SYNART        96                            
+SYNART        96                            
+SYNART        96                            
+SYNART        98                            
+SYNART        98                            
+SYNART        98                            
+SYNART        406                           
+SYNART        406                           
+SYNART        406                           
+SYNART        102                           
+SYNART        408                           
+SYNART        408                           
+SYNART        408                           
+SYNART        412                           
+SYNART        412                           
+SYNART        412                           
+SYNART        418                           
+SYNART        418                           
+SYNART        418                           
+SYNART        427                           
+SYNART        427                           
+SYNART        427                           
+SYNART        410                           
+SYNART        410                           
+SYNART        410                           
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>SYNART    </b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+SYNART                                                   BREUIL
+SYNART                                                   ENT030
+SYNART                                     http://pmetiapp:8080
+SYNART                                                 Centrale
+SYNART                                                   WELCEN
+SYNART                                     http://pmetiapp:8080
+SYNART                                                  Le Meux
+SYNART                                                   ENT010
+SYNART                                     http://pmetiapp:8080
+SYNART                                                MARSEILLE
+SYNART                                                   ENT094
+SYNART                                     http://pmetiapp:8080
+SYNART                                                 Toulouse
+SYNART                                                   ENT096
+SYNART                                     http://pmetiapp:8080
+SYNART                                                     Baud
+SYNART                                                   ENT098
+SYNART                                     http://pmetiapp:8080
+SYNART                                                  WIFR617
+SYNART        https://q2-emag-2900e1777.retailsuite.cgi.com:...
+SYNART                                       AKI BARICENTRO 102
+SYNART                                                CAVAILLON
+SYNART                                                  LA FARE
+SYNART                                                  WSFR406
+SYNART        https://q2-emag-2900e1777.retailsuite.cgi.com:...
+SYNART                                               SEBASTOPOL
+SYNART                                                  WSFR408
+SYNART        https://q2-emag-2900e1777.retailsuite.cgi.com:...
+SYNART                                                    ISAAC
+SYNART                                                  WSFR412
+SYNART        https://q2-emag-2900e1777.retailsuite.cgi.com:...
+SYNART                                               VITROLLESB
+SYNART                                                  WSFR418
+SYNART        https://q2-emag-2900e1777.retailsuite.cgi.com:...
+SYNART                                                   ISTRES
+SYNART                                                  WSFR427
+SYNART        https://q2-emag-2900e1777.retailsuite.cgi.com:...
+SYNART                                                 PLOERMEL
+SYNART                                                  WIFR656
+SYNART        https://q2-emag-2900e1777.retailsuite.cgi.com:...
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+SYNART                                                   BREUIL
+SYNART                                                   ENT030
+SYNART                                     http://pmetiapp:8080
+SYNART                                                 Centrale
+SYNART                                                   WELCEN
+SYNART                                     http://pmetiapp:8080
+SYNART                                                  Le Meux
+SYNART                                                   ENT010
+SYNART                                     http://pmetiapp:8080
+SYNART                                                MARSEILLE
+SYNART                                                   ENT094
+SYNART                                     http://pmetiapp:8080
+SYNART                                                 Toulouse
+SYNART                                                   ENT096
+SYNART                                     http://pmetiapp:8080
+SYNART                                                     Baud
+SYNART                                                   ENT098
+SYNART                                     http://pmetiapp:8080
+SYNART                                                  LA FARE
+SYNART                                                  WSFR406
+SYNART        https://q2-emag-2900e1777.retailsuite.cgi.com:...
+SYNART                                       AKI BARICENTRO 102
+SYNART                                               SEBASTOPOL
+SYNART                                                  WSFR408
+SYNART        https://q2-emag-2900e1777.retailsuite.cgi.com:...
+SYNART                                                    ISAAC
+SYNART                                                  WSFR412
+SYNART        https://q2-emag-2900e1777.retailsuite.cgi.com:...
+SYNART                                               VITROLLESB
+SYNART                                                  WSFR418
+SYNART        https://q2-emag-2900e1777.retailsuite.cgi.com:...
+SYNART                                                   ISTRES
+SYNART                                                  WSFR427
+SYNART        https://q2-emag-2900e1777.retailsuite.cgi.com:...
+SYNART                                                    REDON
+SYNART                                                  WSFR410
+SYNART        https://mob410!meti-store!wdfr!adeo!com/emag_J...
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>SYNART    </b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">VCO_DSLOGORI
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+Name: VCO_FLSELEC, dtype: object</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+Name: VCO_FLSELEC, dtype: object</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>METI      </b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">VCO_DSLOGORI
+METI          CDMAG     
+METI          CDMAG     
+METI          CDMAG     
+METI          CDMAG     
+METI          CDMAG     
+                 ...    
+METI          TYPIECPTA 
+METI          TYPIECPTA 
+METI          TYPIECPTA 
+METI          TYPIECPTA 
+METI          TYPIECPTA 
+Name: VCO_CDRUBORI, Length: 326, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+METI          CDMAG     
+METI          CDMAG     
+METI          CDMAG     
+METI          CDMAG     
+METI          CDMAG     
+                 ...    
+METI          TYPIECPTA 
+METI          TYPIECPTA 
+METI          TYPIECPTA 
+METI          TYPIECPTA 
+METI          TYPIECPTA 
+Name: VCO_CDRUBORI, Length: 328, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>METI      </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+METI          30                            
+METI          10                            
+METI          94                            
+METI          96                            
+METI          98                            
+                           ...              
+METI          O                             
+METI          P                             
+METI          Q                             
+METI          R                             
+METI          S                             
+Name: VCO_ZNVLRUBO, Length: 326, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+METI          30                            
+METI          10                            
+METI          94                            
+METI          96                            
+METI          98                            
+                           ...              
+METI          O                             
+METI          P                             
+METI          Q                             
+METI          R                             
+METI          S                             
+Name: VCO_ZNVLRUBO, Length: 328, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>METI      </b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+METI                              301
+METI                              302
+METI                              303
+METI                              305
+METI                         98000098
+                       ...           
+METI                       LIB_AVOIRS
+METI          LIB_OPERATION_DE_CAISSE
+METI                        LIB_VENTE
+METI                     LIB_FIN_MOIS
+METI                       LIB_STOCK1
+Name: VCO_ZNVLRUBD, Length: 326, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+METI                              301
+METI                              302
+METI                              303
+METI                              305
+METI                         98000098
+                       ...           
+METI                       LIB_AVOIRS
+METI          LIB_OPERATION_DE_CAISSE
+METI                        LIB_VENTE
+METI                     LIB_FIN_MOIS
+METI                       LIB_STOCK1
+Name: VCO_ZNVLRUBD, Length: 328, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>METI      </b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">VCO_DSLOGORI
+METI          b'T'
+METI          b'T'
+METI          b'T'
+METI          b'T'
+METI          b'T'
+              ... 
+METI          b'F'
+METI          b'F'
+METI          b'F'
+METI          b'F'
+METI          b'F'
+Name: VCO_FLSELEC, Length: 326, dtype: object</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+METI          b'T'
+METI          b'T'
+METI          b'T'
+METI          b'T'
+METI          b'T'
+              ... 
+METI          b'F'
+METI          b'F'
+METI          b'F'
+METI          b'F'
+METI          b'F'
+Name: VCO_FLSELEC, Length: 328, dtype: object</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>BLM       </b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">VCO_DSLOGORI
+BLM           b'F'
+BLM           b'F'
+BLM           b'F'
+BLM           b'F'
+BLM           b'F'
+BLM           b'F'
+BLM           b'T'
+BLM           b'T'
+BLM           b'T'
+BLM           b'T'
+BLM           b'T'
+BLM           b'T'
+BLM           b'T'
+Name: VCO_FLSELEC, dtype: object</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+BLM           b'F'
+BLM           b'F'
+BLM           b'F'
+BLM           b'F'
+BLM           b'F'
+BLM           b'T'
+BLM           b'T'
+BLM           b'T'
+BLM           b'T'
+BLM           b'T'
+BLM           b'T'
+BLM           b'T'
+BLM           b'T'
+Name: VCO_FLSELEC, dtype: object</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>ADEO      </b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">VCO_DSLOGORI
+ADEO          ECODIPRI  
+ADEO          ECODIPRI  
+ADEO          ECODISTO  
+ADEO          NIVGAMT0  
+ADEO          NIVGAMT0  
+ADEO          NIVGAMT0  
+ADEO          ECODISTO  
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          STKDOM_UNT
+ADEO          STKDOM_UNT
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          RAP_TYCDE 
+ADEO          RAP_TYCDE 
+ADEO          RAP_TYCDE 
+ADEO          RAP_TYCDE 
+ADEO          RAP_TYCDE 
+ADEO          RAP_TYCDE 
+ADEO          RAP_TYCDE 
+ADEO          RAP_TYCDE 
+ADEO          CODE_TVA  
+Name: VCO_CDRUBORI, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+ADEO          NIVGAMT0  
+ADEO          NIVGAMT0  
+ADEO          NIVGAMT0  
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+                 ...    
+ADEO          ECODIPRI  
+ADEO          ECODIPRI  
+ADEO          ECODISTO  
+ADEO          ECODISTO  
+ADEO          RDDSTK    
+Name: VCO_CDRUBORI, Length: 89, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>ADEO      </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+ADEO          CDETAT                        
+ADEO          TYPART                        
+ADEO          CDETAT                        
+ADEO          Z                             
+ADEO          E                             
+ADEO          P                             
+ADEO          TYPART                        
+ADEO          MRG_CDREGUL                   
+ADEO          MRG_DSOPER                    
+ADEO          MRG_DTREGUL                   
+ADEO          MRG_NOART                     
+ADEO          MRG_PXMOYPDR                  
+ADEO          MRG_PXVENREG                  
+ADEO          MRG_QTREGUL                   
+ADEO          MRG_TTCOMREG                  
+ADEO          MVT_DTMOUVMT                  
+ADEO          MVT_FLPROMO                   
+ADEO          MVT_NOART                     
+ADEO          MVT_QTENTREE                  
+ADEO          MVT_QTREGUL                   
+ADEO          MVT_QTSORTIE                  
+ADEO          MVT_QTSTOMVT                  
+ADEO          MVT_QTVENHCC                  
+ADEO          INIT                          
+ADEO          A                             
+ADEO          K                             
+ADEO          01                            
+ADEO          02                            
+ADEO          03                            
+ADEO          04                            
+ADEO          05                            
+ADEO          07                            
+ADEO          08                            
+ADEO          09                            
+ADEO          10                            
+ADEO          11                            
+ADEO          12                            
+ADEO          13                            
+ADEO          14                            
+ADEO          15                            
+ADEO          16                            
+ADEO          17                            
+ADEO          19                            
+ADEO          22                            
+ADEO          23                            
+ADEO          25                            
+ADEO          50                            
+ADEO          51                            
+ADEO          52                            
+ADEO          CM                            
+ADEO          CW                            
+ADEO          EX                            
+ADEO          FA                            
+ADEO          FM                            
+ADEO          OU                            
+ADEO          PR                            
+ADEO          PU                            
+ADEO          24                            
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+ADEO          Z                             
+ADEO          E                             
+ADEO          P                             
+ADEO          MRG_CDREGUL                   
+ADEO          MRG_DSOPER                    
+                           ...              
+ADEO          CDETAT                        
+ADEO          TYPART                        
+ADEO          CDETAT                        
+ADEO          TYPART                        
+ADEO          INIT                          
+Name: VCO_ZNVLRUBO, Length: 89, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>ADEO      </b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+ADEO          3,4,5,6,7
+ADEO                P,S
+ADEO          3,4,5,6,7
+ADEO                  O
+ADEO                  O
+ADEO                  O
+ADEO                  P
+ADEO                  5
+ADEO                RDD
+ADEO           20170302
+ADEO               1000
+ADEO                  0
+ADEO                  0
+ADEO                  0
+ADEO                RDD
+ADEO           20151231
+ADEO                  N
+ADEO               1000
+ADEO                  0
+ADEO                  0
+ADEO                  0
+ADEO                  0
+ADEO                  0
+ADEO                  N
+ADEO                  A
+ADEO                  K
+ADEO                 01
+ADEO                 22
+ADEO                 03
+ADEO                 03
+ADEO                 25
+ADEO                 25
+ADEO                 25
+ADEO                 25
+ADEO                 25
+ADEO                 25
+ADEO                 25
+ADEO                 25
+ADEO                 25
+ADEO                 25
+ADEO                 25
+ADEO                 25
+ADEO                 23
+ADEO                 22
+ADEO                 23
+ADEO                 25
+ADEO                 22
+ADEO                 23
+ADEO                 01
+ADEO                  3
+ADEO                  3
+ADEO                  1
+ADEO                  1
+ADEO                  1
+ADEO                  1
+ADEO                  2
+ADEO                  1
+ADEO                 24
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+ADEO                O
+ADEO                O
+ADEO                O
+ADEO                5
+ADEO              RDD
+               ...   
+ADEO          3,4,5,7
+ADEO              P,S
+ADEO          3,4,5,7
+ADEO                P
+ADEO                N
+Name: VCO_ZNVLRUBD, Length: 89, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>ADEO      </b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">VCO_DSLOGORI
+ADEO          b'T'
+ADEO          b'T'
+ADEO          b'T'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'T'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+Name: VCO_FLSELEC, dtype: object</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+              ... 
+ADEO          b'T'
+ADEO          b'T'
+ADEO          b'T'
+ADEO          b'T'
+ADEO          b'F'
+Name: VCO_FLSELEC, Length: 89, dtype: object</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>WEBSERV   </b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">VCO_DSLOGORI
+WEBSERV       DSC_PAN   
+WEBSERV       GOLDEN_EYE
+WEBSERV       GOLDEN_EYE
+WEBSERV       INTFCAIS  
+WEBSERV       GOLDEN_EYE
+WEBSERV       ACC_CLIENT
+WEBSERV       ACC_CLIENT
+WEBSERV       INTFCAIS  
+WEBSERV       ACC_CLIENT
+WEBSERV       WLL       
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       ACC_CLIENT
+WEBSERV       ACC_CLIENT
+WEBSERV       OPENBRAVO 
+Name: VCO_CDRUBORI, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+WEBSERV       ACC_CLIENT
+WEBSERV       ACC_CLIENT
+WEBSERV       INTFCAIS  
+WEBSERV       WLL       
+WEBSERV       GOLDEN_EYE
+WEBSERV       GOLDEN_EYE
+WEBSERV       GOLDEN_EYE
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       ACC_CLIENT
+WEBSERV       ACC_CLIENT
+WEBSERV       OPENBRAVO 
+WEBSERV       INTFCAIS  
+WEBSERV       ACC_CLIENT
+WEBSERV       DSC_PAN   
+Name: VCO_CDRUBORI, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>WEBSERV   </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+WEBSERV       DSCPXPRO                      
+WEBSERV       URL                           
+WEBSERV       LOGIN                         
+WEBSERV       CD_REMAC                      
+WEBSERV       PASSWORD                      
+WEBSERV       PORT                          
+WEBSERV       SERVEUR                       
+WEBSERV       DSCREMAC                      
+WEBSERV       URL                           
+WEBSERV       URL                           
+WEBSERV       SOURCE                        
+WEBSERV       URL                           
+WEBSERV       CODE_BU                       
+WEBSERV       CREATE                        
+WEBSERV       GET                           
+WEBSERV       QUALITY                       
+WEBSERV       SEARCH                        
+WEBSERV       UPDATE                        
+WEBSERV       CDMAG                         
+WEBSERV       PASSWORD                      
+WEBSERV       LOGIN                         
+WEBSERV       PAIEMENT_COMPTANT             
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+WEBSERV       PORT                          
+WEBSERV       SERVEUR                       
+WEBSERV       DSCREMAC                      
+WEBSERV       URL                           
+WEBSERV       LOGIN                         
+WEBSERV       PASSWORD                      
+WEBSERV       URL                           
+WEBSERV       SOURCE                        
+WEBSERV       URL                           
+WEBSERV       CODE_BU                       
+WEBSERV       CREATE                        
+WEBSERV       GET                           
+WEBSERV       QUALITY                       
+WEBSERV       SEARCH                        
+WEBSERV       UPDATE                        
+WEBSERV       CDMAG                         
+WEBSERV       PASSWORD                      
+WEBSERV       LOGIN                         
+WEBSERV       PAIEMENT_COMPTANT             
+WEBSERV       CD_REMAC                      
+WEBSERV       URL                           
+WEBSERV       DSCPXPRO                      
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>WEBSERV   </b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+WEBSERV                                                       O
+WEBSERV       https://wsprod.be-one.fr/BoneWSWeldom/soap/per...
+WEBSERV                                                    adeo
+WEBSERV                                                      AC
+WEBSERV                                              #dc65!!OO7
+WEBSERV                                                     NaN
+WEBSERV                                                     NaN
+WEBSERV                                                       N
+WEBSERV                                                     NaN
+WEBSERV                                                     NaN
+WEBSERV                                                  SIRIUS
+WEBSERV       https://scr-mdm-translator-jejyl2-uat1.nprd-02...
+WEBSERV                                                      17
+WEBSERV                              customerCreationWS/V4?wsdl
+WEBSERV                                   getCustomerWS/V4?wsdl
+WEBSERV                               customerQualityWS/V4?wsdl
+WEBSERV                                customerSearchWS/V4?wsdl
+WEBSERV                                customerUpdateWS/V4?wsdl
+WEBSERV                                                     NaN
+WEBSERV                                              #dc65!!OO7
+WEBSERV                                               591637482
+WEBSERV                                                     NaN
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+WEBSERV                                                     NaN
+WEBSERV                                                     NaN
+WEBSERV                                                       N
+WEBSERV                                                     NaN
+WEBSERV                                                    adeo
+WEBSERV                                              #dc65!!OO7
+WEBSERV       https://wsprod.be-one.fr/BoneWSWeldom/soap/per...
+WEBSERV                                                  SIRIUS
+WEBSERV       https://scr-mdm-translator-jejyl2-uat1.nprd-02...
+WEBSERV                                                      17
+WEBSERV                              customerCreationWS/V4?wsdl
+WEBSERV                                   getCustomerWS/V4?wsdl
+WEBSERV                               customerQualityWS/V4?wsdl
+WEBSERV                                customerSearchWS/V4?wsdl
+WEBSERV                                customerUpdateWS/V4?wsdl
+WEBSERV                                                     NaN
+WEBSERV                                              #dc65!!OO7
+WEBSERV                                               591637482
+WEBSERV                                                     NaN
+WEBSERV                                                      AC
+WEBSERV                                                     NaN
+WEBSERV                                                       O
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>WEBSERV   </b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">VCO_DSLOGORI
+WEBSERV       b'T'
+WEBSERV       b'F'
+WEBSERV       b'F'
+WEBSERV       b'F'
+WEBSERV       b'F'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'F'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+Name: VCO_FLSELEC, dtype: object</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'F'
+WEBSERV       b'F'
+WEBSERV       b'F'
+WEBSERV       b'F'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'F'
+WEBSERV       b'T'
+WEBSERV       b'T'
+Name: VCO_FLSELEC, dtype: object</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>RER       </b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">VCO_DSLOGORI
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+Name: VCO_CDRUBORI, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+Name: VCO_CDRUBORI, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>RER       </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+RER           CTRL_MGAPX                    
+RER           TRAITEMENT_20                 
+RER           TRAITEMENT_01                 
+RER           TRAITEMENT_02                 
+RER           TRAITEMENT_03                 
+RER           TRAITEMENT_04                 
+RER           TRAITEMENT_05                 
+RER           TRAITEMENT_06                 
+RER           TRAITEMENT_14                 
+RER           TRAITEMENT_13                 
+RER           TRAITEMENT_15                 
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+RER           TRAITEMENT_20                 
+RER           CTRL_MGAPX                    
+RER           TRAITEMENT_06                 
+RER           TRAITEMENT_08                 
+RER           TRAITEMENT_01                 
+RER           TRAITEMENT_02                 
+RER           TRAITEMENT_03                 
+RER           TRAITEMENT_04                 
+RER           TRAITEMENT_13                 
+RER           TRAITEMENT_14                 
+RER           TRAITEMENT_15                 
+RER           TRAITEMENT_16                 
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>RER       </b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+RER                                                          O
+RER                      E5_TRAN_IMPO_RER_POST_TRT.clean_mgwpv
+RER                   E5_TRAN_IMPO_RER_POST_TRT.maj_remplacant
+RER                     REFE_ARTI_CHGT_CDETAT.proc_chgt_cdetat
+RER           E5_TRAN_IMPO_RER_POST_TRT.STATUT_8_NOGAMME_NOPHP
+RER                 E5_TRAN_IMPO_RER_POST_TRT.maj_ast_flcalpro
+RER                 E5_TRAN_IMPO_RER_POST_TRT.maj_art_fledtetq
+RER                       E5_vtes_cais_valide_wpv.post_trt_rer
+RER                      E5_TRAN_IMPO_RER_POST_TRT.GESTION_ACO
+RER             E5_INIT_FLCALPRO_AVS.GESTION_INIT_FLCALPRO_AVS
+RER                  E5_TRAN_IMPO_RER_POST_TRT.MAJ_PMP_ART_NAT
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+RER                    E5_TRAN_IMPO_RER_POST_TRT.clean_mgwpv
+RER                                                        O
+RER                 E5_TRAN_IMPO_RER_POST_TRT.STATUT_PERE_UD
+RER                  E5_TRAN_IMPO_RER_POST_TRT.GST_GP_MODULE
+RER                   REFE_ARTI_CHGT_CDETAT.PROC_CHGT_CDETAT
+RER               E5_TRAN_IMPO_RER_POST_TRT.MAJ_AST_FLCALPRO
+RER               E5_TRAN_IMPO_RER_POST_TRT.MAJ_ART_FLEDTETQ
+RER                 E5_TRAN_IMPO_RER_POST_TRT.MAJ_REMPLACANT
+RER           E5_INIT_FLCALPRO_AVS.GESTION_INIT_FLCALPRO_AVS
+RER                    E5_TRAN_IMPO_RER_POST_TRT.GESTION_ACO
+RER                E5_TRAN_IMPO_RER_POST_TRT.MAJ_PMP_ART_NAT
+RER            E5_TRAN_IMPO_RER_POST_TRT.PURGE_FIL_INDUS_200
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>RER       </b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">VCO_DSLOGORI
+RER           b'T'
+RER           b'T'
+RER           b'F'
+RER           b'F'
+RER           b'F'
+RER           b'F'
+RER           b'F'
+RER           b'F'
+RER           b'F'
+RER           b'T'
+RER           b'T'
+Name: VCO_FLSELEC, dtype: object</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+RER           b'T'
+RER           b'T'
+RER           b'T'
+RER           b'T'
+RER           b'T'
+RER           b'T'
+RER           b'T'
+RER           b'T'
+RER           b'T'
+RER           b'F'
+RER           b'T'
+RER           b'T'
+Name: VCO_FLSELEC, dtype: object</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>E5_FLX_ESB</b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">MGCPT     </td>
+                            <td class="val-tgt">VCO_DSLOGORI
+E5_FLX_ESB    MGCPT     
+E5_FLX_ESB    MGCPT     
+Name: VCO_CDRUBORI, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>E5_FLX_ESB</b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">E5_NMC_ESB                    </td>
+                            <td class="val-tgt">VCO_DSLOGORI
+E5_FLX_ESB    E5_NMC_ESB                    
+E5_FLX_ESB    E5_FAC_LMFR                   
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>E5_FLX_ESB</b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">E001</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+E5_FLX_ESB    E001
+E5_FLX_ESB    E002
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>E5_FLX_ESB</b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">b'F'</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+E5_FLX_ESB    b'F'
+E5_FLX_ESB    b'F'
+Name: VCO_FLSELEC, dtype: object</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>WEB       </b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">VCO_DSLOGORI
+WEB           MD_REG    
+WEB           MD_REG    
+WEB           PAN_EMET  
+Name: VCO_CDRUBORI, dtype: str</td>
+                            <td class="val-tgt">PAN_EMET  </td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>WEB       </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+WEB           CB                            
+WEB           0                             
+WEB           EMETTEUR                      
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                            <td class="val-tgt">EMETTEUR                      </td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>WEB       </b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+WEB            2
+WEB            2
+WEB           88
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                            <td class="val-tgt">88</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>WEB       </b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">VCO_DSLOGORI
+WEB           b'T'
+WEB           b'F'
+WEB           b'F'
+Name: VCO_FLSELEC, dtype: object</td>
+                            <td class="val-tgt">b'F'</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>LITIGE    </b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">VCO_DSLOGORI
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        PFX_TRFNDD
+LITIGE        EDITION   
+LITIGE        PFX_TRFNDD
+Name: VCO_CDRUBORI, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+LITIGE        PFX_TRFNDD
+LITIGE        EDITION   
+LITIGE        PFX_TRFNDD
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+Name: VCO_CDRUBORI, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>LITIGE    </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+LITIGE        01                            
+LITIGE        02                            
+LITIGE        03                            
+LITIGE        04                            
+LITIGE        05                            
+LITIGE        06                            
+LITIGE        07                            
+LITIGE        08                            
+LITIGE        14                            
+LITIGE        21                            
+LITIGE        22                            
+LITIGE        23                            
+LITIGE        25                            
+LITIGE        26                            
+LITIGE        27                            
+LITIGE        90                            
+LITIGE        91                            
+LITIGE        01                            
+LITIGE        02                            
+LITIGE        03                            
+LITIGE        04                            
+LITIGE        05                            
+LITIGE        06                            
+LITIGE        07                            
+LITIGE        08                            
+LITIGE        14                            
+LITIGE        21                            
+LITIGE        22                            
+LITIGE        23                            
+LITIGE        25                            
+LITIGE        26                            
+LITIGE        90                            
+LITIGE        91                            
+LITIGE        NDI                           
+LITIGE        SOCIETE                       
+LITIGE        NDD                           
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+LITIGE        NDI                           
+LITIGE        SOCIETE                       
+LITIGE        NDD                           
+LITIGE        01                            
+LITIGE        02                            
+LITIGE        03                            
+LITIGE        04                            
+LITIGE        05                            
+LITIGE        06                            
+LITIGE        07                            
+LITIGE        08                            
+LITIGE        14                            
+LITIGE        21                            
+LITIGE        22                            
+LITIGE        23                            
+LITIGE        25                            
+LITIGE        26                            
+LITIGE        27                            
+LITIGE        90                            
+LITIGE        91                            
+LITIGE        01                            
+LITIGE        02                            
+LITIGE        03                            
+LITIGE        04                            
+LITIGE        05                            
+LITIGE        06                            
+LITIGE        07                            
+LITIGE        08                            
+LITIGE        14                            
+LITIGE        21                            
+LITIGE        22                            
+LITIGE        23                            
+LITIGE        25                            
+LITIGE        26                            
+LITIGE        90                            
+LITIGE        91                            
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>LITIGE    </b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+LITIGE         SAV
+LITIGE        QUAL
+LITIGE        CASS
+LITIGE        MANQ
+LITIGE        RECA
+LITIGE         CEN
+LITIGE        EXCR
+LITIGE        EXCA
+LITIGE        CATR
+LITIGE        RIMP
+LITIGE        PERS
+LITIGE        RCOM
+LITIGE        AVOM
+LITIGE        RETM
+LITIGE        RETF
+LITIGE        ERPA
+LITIGE        ERPF
+LITIGE          69
+LITIGE          10
+LITIGE          11
+LITIGE          12
+LITIGE          16
+LITIGE          17
+LITIGE          14
+LITIGE          13
+LITIGE          10
+LITIGE          19
+LITIGE          18
+LITIGE          20
+LITIGE          69
+LITIGE          68
+LITIGE          10
+LITIGE          10
+LITIGE        ANCF
+LITIGE           N
+LITIGE        DNCF
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+LITIGE        ANCF
+LITIGE           N
+LITIGE        DNCF
+LITIGE         SAV
+LITIGE        QUAL
+LITIGE        CASS
+LITIGE        MANQ
+LITIGE        RECA
+LITIGE         CEN
+LITIGE        EXCR
+LITIGE        EXCA
+LITIGE        CATR
+LITIGE        RIMP
+LITIGE        PERS
+LITIGE        RCOM
+LITIGE        AVOM
+LITIGE        RETM
+LITIGE        RETF
+LITIGE        ERPA
+LITIGE        ERPF
+LITIGE          69
+LITIGE          10
+LITIGE          11
+LITIGE          12
+LITIGE          16
+LITIGE          17
+LITIGE          14
+LITIGE          13
+LITIGE          10
+LITIGE          19
+LITIGE          18
+LITIGE          20
+LITIGE          69
+LITIGE          68
+LITIGE          10
+LITIGE          10
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>LITIGE    </b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">VCO_DSLOGORI
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'T'
+LITIGE        b'F'
+LITIGE        b'T'
+Name: VCO_FLSELEC, dtype: object</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+LITIGE        b'T'
+LITIGE        b'F'
+LITIGE        b'T'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+Name: VCO_FLSELEC, dtype: object</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>VTA       </b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">VCO_DSLOGORI
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+Name: VCO_CDRUBORI, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+Name: VCO_CDRUBORI, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>VTA       </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+VTA           STD_TYSITU = 'R'              
+VTA           BONRESA_FLEDITRECEPT          
+VTA           BONRESA_LSTMODRETRAIT         
+VTA           BONRESA_AFFICHCAMION_E5       
+VTA           LSTTPVIR                      
+VTA           CTLSITURETRAIT                
+VTA           SV_DTDEBCDE_NBMOIS            
+VTA           SV_LSTMODRETRAIT_LIV          
+VTA           RECH_DTCLOTURE                
+VTA           MODRETRAITDEF                 
+VTA           IMPRESS_DEFAUT                
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+VTA           BONRESA_FLEDITRECEPT          
+VTA           BONRESA_LSTMODRETRAIT         
+VTA           BONRESA_AFFICHCAMION_E5       
+VTA           LSTTPVIR                      
+VTA           CTLSITURETRAIT                
+VTA           MODRETRAITDEF                 
+VTA           IMPRESS_DEFAUT                
+VTA           RECH_DTCLOTURE                
+VTA           SV_DTDEBCDE_NBMOIS            
+VTA           SV_LSTMODRETRAIT_LIV          
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>VTA       </b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+VTA                    O
+VTA                    O
+VTA           ED;LAD;EXP
+VTA                  LAD
+VTA                    I
+VTA                    O
+VTA                    6
+VTA              LDD;LAD
+VTA                    O
+VTA                   ED
+VTA                    O
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+VTA                    O
+VTA           ED;LAD;EXP
+VTA                  LAD
+VTA                    I
+VTA                    O
+VTA                   ED
+VTA                    O
+VTA                    O
+VTA                    6
+VTA              LDD;LAD
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>VTA       </b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">VCO_DSLOGORI
+VTA           b'F'
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+VTA           b'F'
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+Name: VCO_FLSELEC, dtype: object</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+VTA           b'F'
+Name: VCO_FLSELEC, dtype: object</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>ADEO_INT  </b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">VCO_DSLOGORI
+ADEO_INT      T_NUMCIRLV
+ADEO_INT      REP_RQ_MAG
+ADEO_INT      T_UNIPDS  
+ADEO_INT      REP_RQ_CA 
+ADEO_INT      REP_RQ_CA 
+                 ...    
+ADEO_INT      REP_MAG   
+ADEO_INT      REP_MAG   
+ADEO_INT      REP_MAG   
+ADEO_INT      REP_RQ_MAG
+ADEO_INT      REP_RQ_MAG
+Name: VCO_CDRUBORI, Length: 135, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+ADEO_INT      T_TYPTIER 
+ADEO_INT      T_TYPTIER 
+ADEO_INT      T_CDCDTRG 
+ADEO_INT      T_CDCDTRG 
+ADEO_INT      T_CDCDTRG 
+                 ...    
+ADEO_INT      T_UNIPDS  
+ADEO_INT      REP_RQ_CA 
+ADEO_INT      REP_MAG   
+ADEO_INT      REP_RQ_MAG
+ADEO_INT      REP_RQ_MAG
+Name: VCO_CDRUBORI, Length: 138, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>ADEO_INT  </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+ADEO_INT      EN                            
+ADEO_INT      704                           
+ADEO_INT      X                             
+ADEO_INT      5                             
+ADEO_INT      1                             
+                           ...              
+ADEO_INT      FR-WM-ROLE-METI-MAG-HSCPOLYVAL
+ADEO_INT      FR-WM-ROLE-METI-MAG-N1        
+ADEO_INT      FR-WM-ROLE-METI-MAG-APPLICATIO
+ADEO_INT      1005                          
+ADEO_INT      1006                          
+Name: VCO_ZNVLRUBO, Length: 135, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+ADEO_INT      D                             
+ADEO_INT      9                             
+ADEO_INT      9                             
+ADEO_INT      7                             
+ADEO_INT      3                             
+                           ...              
+ADEO_INT      X                             
+ADEO_INT      6                             
+ADEO_INT      FR-WE-ROLE-METI-MAG-GP-RA     
+ADEO_INT      1005                          
+ADEO_INT      1006                          
+Name: VCO_ZNVLRUBO, Length: 138, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>ADEO_INT  </b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+ADEO_INT                                                      1
+ADEO_INT                                                      N
+ADEO_INT                                                      9
+ADEO_INT                                                      O
+ADEO_INT                                                      O
+                                    ...                        
+ADEO_INT                                                    NaN
+ADEO_INT      701,702,703,704,705,706,751,752,753,800,803,80...
+ADEO_INT      701,702,703,704,705,706,751,752,753,800,803,80...
+ADEO_INT                                                      O
+ADEO_INT                                                      O
+Name: VCO_ZNVLRUBD, Length: 135, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+ADEO_INT                                                     MA
+ADEO_INT                                                     MA
+ADEO_INT                                                   D121
+ADEO_INT                                                    A30
+ADEO_INT                                                    A45
+                                    ...                        
+ADEO_INT                                                      9
+ADEO_INT                                                      O
+ADEO_INT      706,707,708,709,751,752,800,801,802,803,804,80...
+ADEO_INT                                                      O
+ADEO_INT                                                      O
+Name: VCO_ZNVLRUBD, Length: 138, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>ADEO_INT  </b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">VCO_DSLOGORI
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+              ... 
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+Name: VCO_FLSELEC, Length: 135, dtype: object</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+              ... 
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+Name: VCO_FLSELEC, Length: 138, dtype: object</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>VTASTOSIT </b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">VCO_DSLOGORI
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITENT    
+VTASTOSIT     SITENT    
+Name: VCO_CDRUBORI, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITENT    
+Name: VCO_CDRUBORI, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>VTASTOSIT </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+VTASTOSIT     602                           
+VTASTOSIT     603                           
+VTASTOSIT     605                           
+VTASTOSIT     607                           
+VTASTOSIT     610                           
+VTASTOSIT     612                           
+VTASTOSIT     614                           
+VTASTOSIT     615                           
+VTASTOSIT     616                           
+VTASTOSIT     617                           
+VTASTOSIT     618                           
+VTASTOSIT     619                           
+VTASTOSIT     622                           
+VTASTOSIT     623                           
+VTASTOSIT     629                           
+VTASTOSIT     631                           
+VTASTOSIT     636                           
+VTASTOSIT     645                           
+VTASTOSIT     650                           
+VTASTOSIT     653                           
+VTASTOSIT     660                           
+VTASTOSIT     690                           
+VTASTOSIT     692                           
+VTASTOSIT     694                           
+VTASTOSIT     695                           
+VTASTOSIT     691                           
+VTASTOSIT     656                           
+VTASTOSIT     693                           
+VTASTOSIT     103                           
+VTASTOSIT     104                           
+VTASTOSIT     2                             
+VTASTOSIT     30                            
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+VTASTOSIT     406                           
+VTASTOSIT     408                           
+VTASTOSIT     412                           
+VTASTOSIT     418                           
+VTASTOSIT     427                           
+VTASTOSIT     2                             
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>VTASTOSIT </b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>VTASTOSIT </b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">VCO_DSLOGORI
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'F'
+Name: VCO_FLSELEC, dtype: object</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+VTASTOSIT     b'T'
+VTASTOSIT     b'F'
+VTASTOSIT     b'F'
+VTASTOSIT     b'F'
+VTASTOSIT     b'F'
+VTASTOSIT     b'T'
+Name: VCO_FLSELEC, dtype: object</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>E5_BLM    </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+E5_BLM        E                             
+E5_BLM        P                             
+E5_BLM        L                             
+E5_BLM        D                             
+E5_BLM        P                             
+E5_BLM        D                             
+E5_BLM        E                             
+E5_BLM        L                             
+E5_BLM        E                             
+E5_BLM        P                             
+E5_BLM        D                             
+E5_BLM        L                             
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+E5_BLM        P                             
+E5_BLM        E                             
+E5_BLM        L                             
+E5_BLM        D                             
+E5_BLM        P                             
+E5_BLM        D                             
+E5_BLM        E                             
+E5_BLM        L                             
+E5_BLM        E                             
+E5_BLM        P                             
+E5_BLM        D                             
+E5_BLM        L                             
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>ADEO_PMAG </b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">VCO_DSLOGORI
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     LSSITU    
+ADEO_PMAG     LSSITU    
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     TYPCIR    
+ADEO_PMAG     TYPCIR    
+ADEO_PMAG     TYPCIR    
+ADEO_PMAG     TYPCIR    
+ADEO_PMAG     TYPCIR    
+ADEO_PMAG     TYPOPESTK 
+ADEO_PMAG     TYPOPESTK 
+ADEO_PMAG     TYPOPESTK 
+ADEO_PMAG     TYPOPESTK 
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     UA        
+ADEO_PMAG     UA        
+Name: VCO_CDRUBORI, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     LSSITU    
+ADEO_PMAG     LSSITU    
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     TYPCIR    
+ADEO_PMAG     TYPCIR    
+ADEO_PMAG     TYPCIR    
+ADEO_PMAG     TYPCIR    
+ADEO_PMAG     TYPCIR    
+ADEO_PMAG     TYPOPESTK 
+ADEO_PMAG     TYPOPESTK 
+ADEO_PMAG     TYPOPESTK 
+ADEO_PMAG     TYPOPESTK 
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     UA        
+ADEO_PMAG     UA        
+Name: VCO_CDRUBORI, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>ADEO_PMAG </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+ADEO_PMAG     CFR                           
+ADEO_PMAG     CIF                           
+ADEO_PMAG     CIP                           
+ADEO_PMAG     CPT                           
+ADEO_PMAG     DAP                           
+ADEO_PMAG     DAT                           
+ADEO_PMAG     DDP                           
+ADEO_PMAG     EXW                           
+ADEO_PMAG     FAS                           
+ADEO_PMAG     FCA                           
+ADEO_PMAG     FOB                           
+ADEO_PMAG     CMDE                          
+ADEO_PMAG     RECP                          
+ADEO_PMAG     40                            
+ADEO_PMAG     45                            
+ADEO_PMAG     50                            
+ADEO_PMAG     55                            
+ADEO_PMAG     60                            
+ADEO_PMAG     70                            
+ADEO_PMAG     75                            
+ADEO_PMAG     AF                            
+ADEO_PMAG     DI                            
+ADEO_PMAG     EC                            
+ADEO_PMAG     EN                            
+ADEO_PMAG     XX                            
+ADEO_PMAG     20                            
+ADEO_PMAG     22                            
+ADEO_PMAG     23                            
+ADEO_PMAG     29                            
+ADEO_PMAG     C                             
+ADEO_PMAG     E                             
+ADEO_PMAG     H                             
+ADEO_PMAG     L                             
+ADEO_PMAG     Q                             
+ADEO_PMAG     R                             
+ADEO_PMAG     A                             
+ADEO_PMAG     K                             
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+ADEO_PMAG     CFR                           
+ADEO_PMAG     CIF                           
+ADEO_PMAG     FOB                           
+ADEO_PMAG     CMDE                          
+ADEO_PMAG     RECP                          
+ADEO_PMAG     40                            
+ADEO_PMAG     45                            
+ADEO_PMAG     CIP                           
+ADEO_PMAG     CPT                           
+ADEO_PMAG     DAP                           
+ADEO_PMAG     DAT                           
+ADEO_PMAG     DDP                           
+ADEO_PMAG     EXW                           
+ADEO_PMAG     FAS                           
+ADEO_PMAG     FCA                           
+ADEO_PMAG     50                            
+ADEO_PMAG     55                            
+ADEO_PMAG     60                            
+ADEO_PMAG     70                            
+ADEO_PMAG     75                            
+ADEO_PMAG     AF                            
+ADEO_PMAG     DI                            
+ADEO_PMAG     EC                            
+ADEO_PMAG     EN                            
+ADEO_PMAG     XX                            
+ADEO_PMAG     20                            
+ADEO_PMAG     22                            
+ADEO_PMAG     23                            
+ADEO_PMAG     29                            
+ADEO_PMAG     C                             
+ADEO_PMAG     E                             
+ADEO_PMAG     H                             
+ADEO_PMAG     L                             
+ADEO_PMAG     Q                             
+ADEO_PMAG     R                             
+ADEO_PMAG     A                             
+ADEO_PMAG     K                             
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>ADEO_PMAG </b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+ADEO_PMAG             CFR
+ADEO_PMAG             CIF
+ADEO_PMAG             CIP
+ADEO_PMAG             CPT
+ADEO_PMAG             DAP
+ADEO_PMAG             DAT
+ADEO_PMAG             DDP
+ADEO_PMAG             EXW
+ADEO_PMAG             FAS
+ADEO_PMAG             FCA
+ADEO_PMAG             FOB
+ADEO_PMAG        obsolete
+ADEO_PMAG     70;74;75;80
+ADEO_PMAG               3
+ADEO_PMAG               3
+ADEO_PMAG               3
+ADEO_PMAG               3
+ADEO_PMAG               3
+ADEO_PMAG               4
+ADEO_PMAG               4
+ADEO_PMAG              TR
+ADEO_PMAG              CR
+ADEO_PMAG              TR
+ADEO_PMAG              DP
+ADEO_PMAG              XX
+ADEO_PMAG              PS
+ADEO_PMAG              DC
+ADEO_PMAG              DC
+ADEO_PMAG              RC
+ADEO_PMAG               4
+ADEO_PMAG               1
+ADEO_PMAG               3
+ADEO_PMAG              17
+ADEO_PMAG              16
+ADEO_PMAG              15
+ADEO_PMAG               A
+ADEO_PMAG               K
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+ADEO_PMAG             CFR
+ADEO_PMAG             CIF
+ADEO_PMAG             FOB
+ADEO_PMAG        obsolete
+ADEO_PMAG     70;74;75;80
+ADEO_PMAG               3
+ADEO_PMAG               3
+ADEO_PMAG             CIP
+ADEO_PMAG             CPT
+ADEO_PMAG             DAP
+ADEO_PMAG             DAT
+ADEO_PMAG             DDP
+ADEO_PMAG             EXW
+ADEO_PMAG             FAS
+ADEO_PMAG             FCA
+ADEO_PMAG               3
+ADEO_PMAG               3
+ADEO_PMAG               3
+ADEO_PMAG               4
+ADEO_PMAG               4
+ADEO_PMAG              TR
+ADEO_PMAG              CR
+ADEO_PMAG              TR
+ADEO_PMAG              DP
+ADEO_PMAG              XX
+ADEO_PMAG              PS
+ADEO_PMAG              DC
+ADEO_PMAG              DC
+ADEO_PMAG              RC
+ADEO_PMAG               4
+ADEO_PMAG               1
+ADEO_PMAG               3
+ADEO_PMAG              17
+ADEO_PMAG              16
+ADEO_PMAG              15
+ADEO_PMAG               A
+ADEO_PMAG               K
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                        </tr>
+                    </tbody></table></div><div class='schema-block'><h2>Environnement : VDR_WELDOM_QUALIF 2 DEUX 9V - WSFR406</h2><h3 class='missing-title'>❌ Lignes présentes en Pivot mais ABSENTES ici (4)</h3><table class='table-missing'><thead><tr><th>VCO_DSLOGORI</th><th>VCO_CDRUBORI</th><th>VCO_ZNVLRUBO</th><th>VCO_ZNVLRUBD</th><th>VCO_FLSELEC</th></tr></thead><tbody><tr><td>MYCGI     </td><td>CUST_SRCH </td><td>URL                           </td><td>https://gtdp-uat1.priv.nprd.api.devportal.adeo.cloud/api-altair/v3/n/customers/search/</td><td>b'T'</td></tr><tr><td>MYCGI     </td><td>CUST_SRCH </td><td>APPLICATION                   </td><td>Vendeur</td><td>b'T'</td></tr><tr><td>MYCGI     </td><td>CUST_SRCH </td><td>API_KEY                       </td><td>VVtOZi7lrQQK5kprrOKjXQJmtR50nBYZ</td><td>b'T'</td></tr><tr><td>MYCGI     </td><td>CUST_SRCH </td><td>PROVIDER                      </td><td>ALTAIR</td><td>b'T'</td></tr></tbody></table><h3 class='extra-title'>➕ Lignes présentes ici mais ABSENTES en Pivot (14)</h3><table class='table-extra'><thead><tr><th>VCO_DSLOGORI</th><th>VCO_CDRUBORI</th><th>VCO_ZNVLRUBO</th><th>VCO_ZNVLRUBD</th><th>VCO_FLSELEC</th></tr></thead><tbody><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>312                           </td><td>B09</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>405                           </td><td>B6</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>406                           </td><td>CAPSUD</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>408                           </td><td>B4</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>410                           </td><td>DECOBOIS</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>412                           </td><td>CHAMBY</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>414                           </td><td>DCB3</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>416                           </td><td>CHALET</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>420                           </td><td>ANGLE</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>422                           </td><td>FREDIS</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>424                           </td><td>SORADIS</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>426                           </td><td>CRISTAL</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>427                           </td><td>TUBISTRES</td><td>b'F'</td></tr><tr><td>ADEO_GP_MA</td><td>CPTA_CDMAG</td><td>418                           </td><td>GAROLLES</td><td>b'F'</td></tr></tbody></table><h3 class='diff-title'>⚖️ Détail des cellules divergentes (51)</h3>
+                <table class='table-diff'>
+                    <thead>
+                        <tr>
+                            <th>Clé Unique (Index)</th>
+                            <th>Colonne en écart</th>
+                            <th>Valeur Pivot (Réf)</th>
+                            <th>Valeur Cible</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                
+                        <tr>
+                            <td><b>SYNART    </b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">VCO_DSLOGORI
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        CDMAG     
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+Name: VCO_CDRUBORI, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+                 ...    
+SYNART        IDDDOS    
+SYNART        URLDOS    
+SYNART        CDMAG     
+SYNART        IDDDOS    
+SYNART        URLDOS    
+Name: VCO_CDRUBORI, Length: 61, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>SYNART    </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+SYNART        30                            
+SYNART        30                            
+SYNART        30                            
+SYNART        1                             
+SYNART        1                             
+SYNART        1                             
+SYNART        10                            
+SYNART        10                            
+SYNART        10                            
+SYNART        94                            
+SYNART        94                            
+SYNART        94                            
+SYNART        96                            
+SYNART        96                            
+SYNART        96                            
+SYNART        98                            
+SYNART        98                            
+SYNART        98                            
+SYNART        617                           
+SYNART        617                           
+SYNART        102                           
+SYNART        617                           
+SYNART        406                           
+SYNART        406                           
+SYNART        406                           
+SYNART        408                           
+SYNART        408                           
+SYNART        408                           
+SYNART        412                           
+SYNART        412                           
+SYNART        412                           
+SYNART        418                           
+SYNART        418                           
+SYNART        418                           
+SYNART        427                           
+SYNART        427                           
+SYNART        427                           
+SYNART        656                           
+SYNART        656                           
+SYNART        656                           
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+SYNART        30                            
+SYNART        30                            
+SYNART        30                            
+SYNART        1                             
+SYNART        1                             
+                           ...              
+SYNART        414                           
+SYNART        414                           
+SYNART        416                           
+SYNART        416                           
+SYNART        416                           
+Name: VCO_ZNVLRUBO, Length: 61, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>SYNART    </b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+SYNART                                                   BREUIL
+SYNART                                                   ENT030
+SYNART                                     http://pmetiapp:8080
+SYNART                                                 Centrale
+SYNART                                                   WELCEN
+SYNART                                     http://pmetiapp:8080
+SYNART                                                  Le Meux
+SYNART                                                   ENT010
+SYNART                                     http://pmetiapp:8080
+SYNART                                                MARSEILLE
+SYNART                                                   ENT094
+SYNART                                     http://pmetiapp:8080
+SYNART                                                 Toulouse
+SYNART                                                   ENT096
+SYNART                                     http://pmetiapp:8080
+SYNART                                                     Baud
+SYNART                                                   ENT098
+SYNART                                     http://pmetiapp:8080
+SYNART                                                  WIFR617
+SYNART        https://q2-emag-2900e1777.retailsuite.cgi.com:...
+SYNART                                       AKI BARICENTRO 102
+SYNART                                                CAVAILLON
+SYNART                                                  LA FARE
+SYNART                                                  WSFR406
+SYNART        https://q2-emag-2900e1777.retailsuite.cgi.com:...
+SYNART                                               SEBASTOPOL
+SYNART                                                  WSFR408
+SYNART        https://q2-emag-2900e1777.retailsuite.cgi.com:...
+SYNART                                                    ISAAC
+SYNART                                                  WSFR412
+SYNART        https://q2-emag-2900e1777.retailsuite.cgi.com:...
+SYNART                                               VITROLLESB
+SYNART                                                  WSFR418
+SYNART        https://q2-emag-2900e1777.retailsuite.cgi.com:...
+SYNART                                                   ISTRES
+SYNART                                                  WSFR427
+SYNART        https://q2-emag-2900e1777.retailsuite.cgi.com:...
+SYNART                                                 PLOERMEL
+SYNART                                                  WIFR656
+SYNART        https://q2-emag-2900e1777.retailsuite.cgi.com:...
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+SYNART                                                   BREUIL
+SYNART                                                   ENT030
+SYNART                                     http://pmetiapp:8080
+SYNART                                                 Centrale
+SYNART                                                   WELCEN
+                                    ...                        
+SYNART                                                  WSFR414
+SYNART        https://mob414!meti-store!wdfr!adeo!com/emag_J...
+SYNART                                               CROIXROUGE
+SYNART                                                  WSFR416
+SYNART        https://mob416!meti-store!wdfr!adeo!com/emag_J...
+Name: VCO_ZNVLRUBD, Length: 61, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>SYNART    </b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">VCO_DSLOGORI
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+Name: VCO_FLSELEC, dtype: object</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+              ... 
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+SYNART        b'F'
+Name: VCO_FLSELEC, Length: 61, dtype: object</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>METI      </b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">VCO_DSLOGORI
+METI          CDMAG     
+METI          CDMAG     
+METI          CDMAG     
+METI          CDMAG     
+METI          CDMAG     
+                 ...    
+METI          TYPIECPTA 
+METI          TYPIECPTA 
+METI          TYPIECPTA 
+METI          TYPIECPTA 
+METI          TYPIECPTA 
+Name: VCO_CDRUBORI, Length: 326, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+METI          CDMAG     
+METI          CDMAG     
+METI          CDMAG     
+METI          CDMAG     
+METI          CDMAG     
+                 ...    
+METI          TYPIECPTA 
+METI          TYPIECPTA 
+METI          TYPIECPTA 
+METI          TYPIECPTA 
+METI          TYPIECPTA 
+Name: VCO_CDRUBORI, Length: 330, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>METI      </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+METI          30                            
+METI          10                            
+METI          94                            
+METI          96                            
+METI          98                            
+                           ...              
+METI          O                             
+METI          P                             
+METI          Q                             
+METI          R                             
+METI          S                             
+Name: VCO_ZNVLRUBO, Length: 326, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+METI          30                            
+METI          10                            
+METI          94                            
+METI          96                            
+METI          98                            
+                           ...              
+METI          O                             
+METI          P                             
+METI          Q                             
+METI          R                             
+METI          S                             
+Name: VCO_ZNVLRUBO, Length: 330, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>METI      </b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+METI                              301
+METI                              302
+METI                              303
+METI                              305
+METI                         98000098
+                       ...           
+METI                       LIB_AVOIRS
+METI          LIB_OPERATION_DE_CAISSE
+METI                        LIB_VENTE
+METI                     LIB_FIN_MOIS
+METI                       LIB_STOCK1
+Name: VCO_ZNVLRUBD, Length: 326, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+METI                              301
+METI                              302
+METI                              303
+METI                              305
+METI                         98000098
+                       ...           
+METI                       LIB_AVOIRS
+METI          LIB_OPERATION_DE_CAISSE
+METI                        LIB_VENTE
+METI                     LIB_FIN_MOIS
+METI                       LIB_STOCK1
+Name: VCO_ZNVLRUBD, Length: 330, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>METI      </b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">VCO_DSLOGORI
+METI          b'T'
+METI          b'T'
+METI          b'T'
+METI          b'T'
+METI          b'T'
+              ... 
+METI          b'F'
+METI          b'F'
+METI          b'F'
+METI          b'F'
+METI          b'F'
+Name: VCO_FLSELEC, Length: 326, dtype: object</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+METI          b'T'
+METI          b'T'
+METI          b'T'
+METI          b'T'
+METI          b'T'
+              ... 
+METI          b'F'
+METI          b'F'
+METI          b'F'
+METI          b'F'
+METI          b'F'
+Name: VCO_FLSELEC, Length: 330, dtype: object</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>BLM       </b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">VCO_DSLOGORI
+BLM           b'F'
+BLM           b'F'
+BLM           b'F'
+BLM           b'F'
+BLM           b'F'
+BLM           b'F'
+BLM           b'T'
+BLM           b'T'
+BLM           b'T'
+BLM           b'T'
+BLM           b'T'
+BLM           b'T'
+BLM           b'T'
+Name: VCO_FLSELEC, dtype: object</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+BLM           b'F'
+BLM           b'F'
+BLM           b'F'
+BLM           b'F'
+BLM           b'F'
+BLM           b'T'
+BLM           b'T'
+BLM           b'T'
+BLM           b'T'
+BLM           b'T'
+BLM           b'T'
+BLM           b'T'
+BLM           b'T'
+Name: VCO_FLSELEC, dtype: object</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>ADEO      </b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">VCO_DSLOGORI
+ADEO          ECODIPRI  
+ADEO          ECODIPRI  
+ADEO          ECODISTO  
+ADEO          NIVGAMT0  
+ADEO          NIVGAMT0  
+ADEO          NIVGAMT0  
+ADEO          ECODISTO  
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          RDDSTK    
+ADEO          STKDOM_UNT
+ADEO          STKDOM_UNT
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          CODE_TVA  
+ADEO          RAP_TYCDE 
+ADEO          RAP_TYCDE 
+ADEO          RAP_TYCDE 
+ADEO          RAP_TYCDE 
+ADEO          RAP_TYCDE 
+ADEO          RAP_TYCDE 
+ADEO          RAP_TYCDE 
+ADEO          RAP_TYCDE 
+ADEO          CODE_TVA  
+Name: VCO_CDRUBORI, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+ADEO          NIVGAMT0  
+ADEO          NIVGAMT0  
+ADEO          NIVGAMT0  
+ADEO          RDDSTK    
+ADEO          CODE_TVA  
+                 ...    
+ADEO          RDDSTK    
+ADEO          ECODIPRI  
+ADEO          ECODIPRI  
+ADEO          ECODISTO  
+ADEO          ECODISTO  
+Name: VCO_CDRUBORI, Length: 89, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>ADEO      </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+ADEO          CDETAT                        
+ADEO          TYPART                        
+ADEO          CDETAT                        
+ADEO          Z                             
+ADEO          E                             
+ADEO          P                             
+ADEO          TYPART                        
+ADEO          MRG_CDREGUL                   
+ADEO          MRG_DSOPER                    
+ADEO          MRG_DTREGUL                   
+ADEO          MRG_NOART                     
+ADEO          MRG_PXMOYPDR                  
+ADEO          MRG_PXVENREG                  
+ADEO          MRG_QTREGUL                   
+ADEO          MRG_TTCOMREG                  
+ADEO          MVT_DTMOUVMT                  
+ADEO          MVT_FLPROMO                   
+ADEO          MVT_NOART                     
+ADEO          MVT_QTENTREE                  
+ADEO          MVT_QTREGUL                   
+ADEO          MVT_QTSORTIE                  
+ADEO          MVT_QTSTOMVT                  
+ADEO          MVT_QTVENHCC                  
+ADEO          INIT                          
+ADEO          A                             
+ADEO          K                             
+ADEO          01                            
+ADEO          02                            
+ADEO          03                            
+ADEO          04                            
+ADEO          05                            
+ADEO          07                            
+ADEO          08                            
+ADEO          09                            
+ADEO          10                            
+ADEO          11                            
+ADEO          12                            
+ADEO          13                            
+ADEO          14                            
+ADEO          15                            
+ADEO          16                            
+ADEO          17                            
+ADEO          19                            
+ADEO          22                            
+ADEO          23                            
+ADEO          25                            
+ADEO          50                            
+ADEO          51                            
+ADEO          52                            
+ADEO          CM                            
+ADEO          CW                            
+ADEO          EX                            
+ADEO          FA                            
+ADEO          FM                            
+ADEO          OU                            
+ADEO          PR                            
+ADEO          PU                            
+ADEO          24                            
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+ADEO          Z                             
+ADEO          E                             
+ADEO          P                             
+ADEO          INIT                          
+ADEO          24                            
+                           ...              
+ADEO          MVT_QTVENHCC                  
+ADEO          CDETAT                        
+ADEO          TYPART                        
+ADEO          CDETAT                        
+ADEO          TYPART                        
+Name: VCO_ZNVLRUBO, Length: 89, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>ADEO      </b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+ADEO          3,4,5,6,7
+ADEO                P,S
+ADEO          3,4,5,6,7
+ADEO                  O
+ADEO                  O
+ADEO                  O
+ADEO                  P
+ADEO                  5
+ADEO                RDD
+ADEO           20170302
+ADEO               1000
+ADEO                  0
+ADEO                  0
+ADEO                  0
+ADEO                RDD
+ADEO           20151231
+ADEO                  N
+ADEO               1000
+ADEO                  0
+ADEO                  0
+ADEO                  0
+ADEO                  0
+ADEO                  0
+ADEO                  N
+ADEO                  A
+ADEO                  K
+ADEO                 01
+ADEO                 22
+ADEO                 03
+ADEO                 03
+ADEO                 25
+ADEO                 25
+ADEO                 25
+ADEO                 25
+ADEO                 25
+ADEO                 25
+ADEO                 25
+ADEO                 25
+ADEO                 25
+ADEO                 25
+ADEO                 25
+ADEO                 25
+ADEO                 23
+ADEO                 22
+ADEO                 23
+ADEO                 25
+ADEO                 22
+ADEO                 23
+ADEO                 01
+ADEO                  3
+ADEO                  3
+ADEO                  1
+ADEO                  1
+ADEO                  1
+ADEO                  1
+ADEO                  2
+ADEO                  1
+ADEO                 24
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+ADEO                O
+ADEO                O
+ADEO                O
+ADEO                N
+ADEO               24
+               ...   
+ADEO                0
+ADEO          3,4,5,7
+ADEO              P,S
+ADEO          3,4,5,7
+ADEO                P
+Name: VCO_ZNVLRUBD, Length: 89, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>ADEO      </b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">VCO_DSLOGORI
+ADEO          b'T'
+ADEO          b'T'
+ADEO          b'T'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'T'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+Name: VCO_FLSELEC, dtype: object</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+ADEO          b'F'
+              ... 
+ADEO          b'F'
+ADEO          b'T'
+ADEO          b'T'
+ADEO          b'T'
+ADEO          b'T'
+Name: VCO_FLSELEC, Length: 89, dtype: object</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>WEBSERV   </b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">VCO_DSLOGORI
+WEBSERV       DSC_PAN   
+WEBSERV       GOLDEN_EYE
+WEBSERV       GOLDEN_EYE
+WEBSERV       INTFCAIS  
+WEBSERV       GOLDEN_EYE
+WEBSERV       ACC_CLIENT
+WEBSERV       ACC_CLIENT
+WEBSERV       INTFCAIS  
+WEBSERV       ACC_CLIENT
+WEBSERV       WLL       
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       ACC_CLIENT
+WEBSERV       ACC_CLIENT
+WEBSERV       OPENBRAVO 
+Name: VCO_CDRUBORI, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+WEBSERV       DSC_PAN   
+WEBSERV       ACC_CLIENT
+WEBSERV       ACC_CLIENT
+WEBSERV       INTFCAIS  
+WEBSERV       WLL       
+WEBSERV       GOLDEN_EYE
+WEBSERV       GOLDEN_EYE
+WEBSERV       GOLDEN_EYE
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       REFCLI    
+WEBSERV       INTFCAIS  
+WEBSERV       ACC_CLIENT
+WEBSERV       ACC_CLIENT
+WEBSERV       ACC_CLIENT
+WEBSERV       OPENBRAVO 
+Name: VCO_CDRUBORI, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>WEBSERV   </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+WEBSERV       DSCPXPRO                      
+WEBSERV       URL                           
+WEBSERV       LOGIN                         
+WEBSERV       CD_REMAC                      
+WEBSERV       PASSWORD                      
+WEBSERV       PORT                          
+WEBSERV       SERVEUR                       
+WEBSERV       DSCREMAC                      
+WEBSERV       URL                           
+WEBSERV       URL                           
+WEBSERV       SOURCE                        
+WEBSERV       URL                           
+WEBSERV       CODE_BU                       
+WEBSERV       CREATE                        
+WEBSERV       GET                           
+WEBSERV       QUALITY                       
+WEBSERV       SEARCH                        
+WEBSERV       UPDATE                        
+WEBSERV       CDMAG                         
+WEBSERV       PASSWORD                      
+WEBSERV       LOGIN                         
+WEBSERV       PAIEMENT_COMPTANT             
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+WEBSERV       DSCPXPRO                      
+WEBSERV       PORT                          
+WEBSERV       SERVEUR                       
+WEBSERV       DSCREMAC                      
+WEBSERV       URL                           
+WEBSERV       LOGIN                         
+WEBSERV       PASSWORD                      
+WEBSERV       URL                           
+WEBSERV       SOURCE                        
+WEBSERV       URL                           
+WEBSERV       CODE_BU                       
+WEBSERV       CREATE                        
+WEBSERV       GET                           
+WEBSERV       QUALITY                       
+WEBSERV       SEARCH                        
+WEBSERV       UPDATE                        
+WEBSERV       CDMAG                         
+WEBSERV       CD_REMAC                      
+WEBSERV       URL                           
+WEBSERV       PASSWORD                      
+WEBSERV       LOGIN                         
+WEBSERV       PAIEMENT_COMPTANT             
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>WEBSERV   </b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+WEBSERV                                                       O
+WEBSERV       https://wsprod.be-one.fr/BoneWSWeldom/soap/per...
+WEBSERV                                                    adeo
+WEBSERV                                                      AC
+WEBSERV                                              #dc65!!OO7
+WEBSERV                                                     NaN
+WEBSERV                                                     NaN
+WEBSERV                                                       N
+WEBSERV                                                     NaN
+WEBSERV                                                     NaN
+WEBSERV                                                  SIRIUS
+WEBSERV       https://scr-mdm-translator-jejyl2-uat1.nprd-02...
+WEBSERV                                                      17
+WEBSERV                              customerCreationWS/V4?wsdl
+WEBSERV                                   getCustomerWS/V4?wsdl
+WEBSERV                               customerQualityWS/V4?wsdl
+WEBSERV                                customerSearchWS/V4?wsdl
+WEBSERV                                customerUpdateWS/V4?wsdl
+WEBSERV                                                     NaN
+WEBSERV                                              #dc65!!OO7
+WEBSERV                                               591637482
+WEBSERV                                                     NaN
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+WEBSERV                                                       O
+WEBSERV                                                     NaN
+WEBSERV                                                     NaN
+WEBSERV                                                       N
+WEBSERV                                                     NaN
+WEBSERV                                                    adeo
+WEBSERV                                              #dc65!!OO7
+WEBSERV       https://wsprod.be-one.fr/BoneWSWeldom/soap/per...
+WEBSERV                                                 MAGASIN
+WEBSERV       https://scr-mdm-translator-jejyl2-uat1.nprd-02...
+WEBSERV                                                      17
+WEBSERV                              customerCreationWS/V4?wsdl
+WEBSERV                                   getCustomerWS/V4?wsdl
+WEBSERV                               customerQualityWS/V4?wsdl
+WEBSERV                                customerSearchWS/V4?wsdl
+WEBSERV                                customerUpdateWS/V4?wsdl
+WEBSERV                                                     NaN
+WEBSERV                                                      AC
+WEBSERV                                                     NaN
+WEBSERV                                              #dc65!!OO7
+WEBSERV                                               591637482
+WEBSERV                                                     NaN
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>WEBSERV   </b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">VCO_DSLOGORI
+WEBSERV       b'T'
+WEBSERV       b'F'
+WEBSERV       b'F'
+WEBSERV       b'F'
+WEBSERV       b'F'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'F'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+Name: VCO_FLSELEC, dtype: object</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'F'
+WEBSERV       b'F'
+WEBSERV       b'F'
+WEBSERV       b'F'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'F'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+WEBSERV       b'T'
+Name: VCO_FLSELEC, dtype: object</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>RER       </b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">VCO_DSLOGORI
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+Name: VCO_CDRUBORI, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+RER           TRAIT_IMPO
+Name: VCO_CDRUBORI, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>RER       </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+RER           CTRL_MGAPX                    
+RER           TRAITEMENT_20                 
+RER           TRAITEMENT_01                 
+RER           TRAITEMENT_02                 
+RER           TRAITEMENT_03                 
+RER           TRAITEMENT_04                 
+RER           TRAITEMENT_05                 
+RER           TRAITEMENT_06                 
+RER           TRAITEMENT_14                 
+RER           TRAITEMENT_13                 
+RER           TRAITEMENT_15                 
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+RER           TRAITEMENT_20                 
+RER           CTRL_MGAPX                    
+RER           TRAITEMENT_06                 
+RER           TRAITEMENT_01                 
+RER           TRAITEMENT_02                 
+RER           TRAITEMENT_03                 
+RER           TRAITEMENT_04                 
+RER           TRAITEMENT_15                 
+RER           TRAITEMENT_13                 
+RER           TRAITEMENT_16                 
+RER           TRAITEMENT_14                 
+RER           TRAITEMENT_08                 
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>RER       </b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+RER                                                          O
+RER                      E5_TRAN_IMPO_RER_POST_TRT.clean_mgwpv
+RER                   E5_TRAN_IMPO_RER_POST_TRT.maj_remplacant
+RER                     REFE_ARTI_CHGT_CDETAT.proc_chgt_cdetat
+RER           E5_TRAN_IMPO_RER_POST_TRT.STATUT_8_NOGAMME_NOPHP
+RER                 E5_TRAN_IMPO_RER_POST_TRT.maj_ast_flcalpro
+RER                 E5_TRAN_IMPO_RER_POST_TRT.maj_art_fledtetq
+RER                       E5_vtes_cais_valide_wpv.post_trt_rer
+RER                      E5_TRAN_IMPO_RER_POST_TRT.GESTION_ACO
+RER             E5_INIT_FLCALPRO_AVS.GESTION_INIT_FLCALPRO_AVS
+RER                  E5_TRAN_IMPO_RER_POST_TRT.MAJ_PMP_ART_NAT
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+RER                    E5_TRAN_IMPO_RER_POST_TRT.clean_mgwpv
+RER                                                        O
+RER                 E5_TRAN_IMPO_RER_POST_TRT.STATUT_PERE_UD
+RER                   REFE_ARTI_CHGT_CDETAT.PROC_CHGT_CDETAT
+RER               E5_TRAN_IMPO_RER_POST_TRT.MAJ_AST_FLCALPRO
+RER               E5_TRAN_IMPO_RER_POST_TRT.MAJ_ART_FLEDTETQ
+RER                 E5_TRAN_IMPO_RER_POST_TRT.MAJ_REMPLACANT
+RER                E5_TRAN_IMPO_RER_POST_TRT.MAJ_PMP_ART_NAT
+RER           E5_INIT_FLCALPRO_AVS.GESTION_INIT_FLCALPRO_AVS
+RER            E5_TRAN_IMPO_RER_POST_TRT.PURGE_FIL_INDUS_200
+RER                    E5_TRAN_IMPO_RER_POST_TRT.GESTION_ACO
+RER                  E5_TRAN_IMPO_RER_POST_TRT.GST_GP_MODULE
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>RER       </b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">VCO_DSLOGORI
+RER           b'T'
+RER           b'T'
+RER           b'F'
+RER           b'F'
+RER           b'F'
+RER           b'F'
+RER           b'F'
+RER           b'F'
+RER           b'F'
+RER           b'T'
+RER           b'T'
+Name: VCO_FLSELEC, dtype: object</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+RER           b'T'
+RER           b'T'
+RER           b'T'
+RER           b'T'
+RER           b'T'
+RER           b'T'
+RER           b'T'
+RER           b'T'
+RER           b'T'
+RER           b'T'
+RER           b'F'
+RER           b'T'
+Name: VCO_FLSELEC, dtype: object</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>E5_FLX_ESB</b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">MGCPT     </td>
+                            <td class="val-tgt">VCO_DSLOGORI
+E5_FLX_ESB    MGCPT     
+E5_FLX_ESB    MGCPT     
+Name: VCO_CDRUBORI, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>E5_FLX_ESB</b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">E5_NMC_ESB                    </td>
+                            <td class="val-tgt">VCO_DSLOGORI
+E5_FLX_ESB    E5_NMC_ESB                    
+E5_FLX_ESB    E5_FAC_LMFR                   
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>E5_FLX_ESB</b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">E001</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+E5_FLX_ESB    E001
+E5_FLX_ESB    E002
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>E5_FLX_ESB</b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">b'F'</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+E5_FLX_ESB    b'F'
+E5_FLX_ESB    b'F'
+Name: VCO_FLSELEC, dtype: object</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>WEB       </b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">VCO_DSLOGORI
+WEB           MD_REG    
+WEB           MD_REG    
+WEB           PAN_EMET  
+Name: VCO_CDRUBORI, dtype: str</td>
+                            <td class="val-tgt">PAN_EMET  </td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>WEB       </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+WEB           CB                            
+WEB           0                             
+WEB           EMETTEUR                      
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                            <td class="val-tgt">EMETTEUR                      </td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>WEB       </b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+WEB            2
+WEB            2
+WEB           88
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                            <td class="val-tgt">88</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>WEB       </b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">VCO_DSLOGORI
+WEB           b'T'
+WEB           b'F'
+WEB           b'F'
+Name: VCO_FLSELEC, dtype: object</td>
+                            <td class="val-tgt">b'F'</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>LITIGE    </b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">VCO_DSLOGORI
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        PFX_TRFNDD
+LITIGE        EDITION   
+LITIGE        PFX_TRFNDD
+Name: VCO_CDRUBORI, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+LITIGE        PFX_TRFNDD
+LITIGE        EDITION   
+LITIGE        PFX_TRFNDD
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        COR_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+LITIGE        SIT_LIT   
+Name: VCO_CDRUBORI, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>LITIGE    </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+LITIGE        01                            
+LITIGE        02                            
+LITIGE        03                            
+LITIGE        04                            
+LITIGE        05                            
+LITIGE        06                            
+LITIGE        07                            
+LITIGE        08                            
+LITIGE        14                            
+LITIGE        21                            
+LITIGE        22                            
+LITIGE        23                            
+LITIGE        25                            
+LITIGE        26                            
+LITIGE        27                            
+LITIGE        90                            
+LITIGE        91                            
+LITIGE        01                            
+LITIGE        02                            
+LITIGE        03                            
+LITIGE        04                            
+LITIGE        05                            
+LITIGE        06                            
+LITIGE        07                            
+LITIGE        08                            
+LITIGE        14                            
+LITIGE        21                            
+LITIGE        22                            
+LITIGE        23                            
+LITIGE        25                            
+LITIGE        26                            
+LITIGE        90                            
+LITIGE        91                            
+LITIGE        NDI                           
+LITIGE        SOCIETE                       
+LITIGE        NDD                           
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+LITIGE        NDI                           
+LITIGE        SOCIETE                       
+LITIGE        NDD                           
+LITIGE        01                            
+LITIGE        02                            
+LITIGE        03                            
+LITIGE        04                            
+LITIGE        05                            
+LITIGE        06                            
+LITIGE        07                            
+LITIGE        08                            
+LITIGE        14                            
+LITIGE        21                            
+LITIGE        22                            
+LITIGE        23                            
+LITIGE        25                            
+LITIGE        26                            
+LITIGE        27                            
+LITIGE        90                            
+LITIGE        91                            
+LITIGE        01                            
+LITIGE        02                            
+LITIGE        03                            
+LITIGE        04                            
+LITIGE        05                            
+LITIGE        06                            
+LITIGE        07                            
+LITIGE        08                            
+LITIGE        14                            
+LITIGE        21                            
+LITIGE        22                            
+LITIGE        23                            
+LITIGE        25                            
+LITIGE        26                            
+LITIGE        90                            
+LITIGE        91                            
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>LITIGE    </b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+LITIGE         SAV
+LITIGE        QUAL
+LITIGE        CASS
+LITIGE        MANQ
+LITIGE        RECA
+LITIGE         CEN
+LITIGE        EXCR
+LITIGE        EXCA
+LITIGE        CATR
+LITIGE        RIMP
+LITIGE        PERS
+LITIGE        RCOM
+LITIGE        AVOM
+LITIGE        RETM
+LITIGE        RETF
+LITIGE        ERPA
+LITIGE        ERPF
+LITIGE          69
+LITIGE          10
+LITIGE          11
+LITIGE          12
+LITIGE          16
+LITIGE          17
+LITIGE          14
+LITIGE          13
+LITIGE          10
+LITIGE          19
+LITIGE          18
+LITIGE          20
+LITIGE          69
+LITIGE          68
+LITIGE          10
+LITIGE          10
+LITIGE        ANCF
+LITIGE           N
+LITIGE        DNCF
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+LITIGE        ANCF
+LITIGE           N
+LITIGE        DNCF
+LITIGE         SAV
+LITIGE        QUAL
+LITIGE        CASS
+LITIGE        MANQ
+LITIGE        RECA
+LITIGE         CEN
+LITIGE        EXCR
+LITIGE        EXCA
+LITIGE        CATR
+LITIGE        RIMP
+LITIGE        PERS
+LITIGE        RCOM
+LITIGE        AVOM
+LITIGE        RETM
+LITIGE        RETF
+LITIGE        ERPA
+LITIGE        ERPF
+LITIGE          69
+LITIGE          10
+LITIGE          11
+LITIGE          12
+LITIGE          16
+LITIGE          17
+LITIGE          14
+LITIGE          13
+LITIGE          10
+LITIGE          19
+LITIGE          18
+LITIGE          20
+LITIGE          69
+LITIGE          68
+LITIGE          10
+LITIGE          10
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>LITIGE    </b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">VCO_DSLOGORI
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'T'
+LITIGE        b'F'
+LITIGE        b'T'
+Name: VCO_FLSELEC, dtype: object</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+LITIGE        b'T'
+LITIGE        b'F'
+LITIGE        b'T'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+LITIGE        b'F'
+Name: VCO_FLSELEC, dtype: object</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>VTA       </b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">VCO_DSLOGORI
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+Name: VCO_CDRUBORI, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+VTA           GENERAL   
+Name: VCO_CDRUBORI, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>VTA       </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+VTA           STD_TYSITU = 'R'              
+VTA           BONRESA_FLEDITRECEPT          
+VTA           BONRESA_LSTMODRETRAIT         
+VTA           BONRESA_AFFICHCAMION_E5       
+VTA           LSTTPVIR                      
+VTA           CTLSITURETRAIT                
+VTA           SV_DTDEBCDE_NBMOIS            
+VTA           SV_LSTMODRETRAIT_LIV          
+VTA           RECH_DTCLOTURE                
+VTA           MODRETRAITDEF                 
+VTA           IMPRESS_DEFAUT                
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+VTA           IMPRESS_DEFAUT                
+VTA           BONRESA_FLEDITRECEPT          
+VTA           BONRESA_LSTMODRETRAIT         
+VTA           BONRESA_AFFICHCAMION_E5       
+VTA           LSTTPVIR                      
+VTA           CTLSITURETRAIT                
+VTA           MODRETRAITDEF                 
+VTA           RECH_DTCLOTURE                
+VTA           SV_DTDEBCDE_NBMOIS            
+VTA           SV_LSTMODRETRAIT_LIV          
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>VTA       </b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+VTA                    O
+VTA                    O
+VTA           ED;LAD;EXP
+VTA                  LAD
+VTA                    I
+VTA                    O
+VTA                    6
+VTA              LDD;LAD
+VTA                    O
+VTA                   ED
+VTA                    O
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+VTA                    O
+VTA                    O
+VTA           ED;LAD;EXP
+VTA                  LAD
+VTA                    I
+VTA                    O
+VTA                   ED
+VTA                    O
+VTA                    6
+VTA              LDD;LAD
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>VTA       </b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">VCO_DSLOGORI
+VTA           b'F'
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+VTA           b'F'
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+Name: VCO_FLSELEC, dtype: object</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+VTA           b'T'
+VTA           b'F'
+Name: VCO_FLSELEC, dtype: object</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>ADEO_INT  </b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">VCO_DSLOGORI
+ADEO_INT      T_NUMCIRLV
+ADEO_INT      REP_RQ_MAG
+ADEO_INT      T_UNIPDS  
+ADEO_INT      REP_RQ_CA 
+ADEO_INT      REP_RQ_CA 
+                 ...    
+ADEO_INT      REP_MAG   
+ADEO_INT      REP_MAG   
+ADEO_INT      REP_MAG   
+ADEO_INT      REP_RQ_MAG
+ADEO_INT      REP_RQ_MAG
+Name: VCO_CDRUBORI, Length: 135, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+ADEO_INT      T_TYPTIER 
+ADEO_INT      T_TYPTIER 
+ADEO_INT      T_CDCDTRG 
+ADEO_INT      T_CDCDTRG 
+ADEO_INT      T_CDCDTRG 
+                 ...    
+ADEO_INT      T_UNIPDS  
+ADEO_INT      REP_RQ_CA 
+ADEO_INT      REP_RQ_MAG
+ADEO_INT      REP_RQ_MAG
+ADEO_INT      REP_RQ_MAG
+Name: VCO_CDRUBORI, Length: 138, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>ADEO_INT  </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+ADEO_INT      EN                            
+ADEO_INT      704                           
+ADEO_INT      X                             
+ADEO_INT      5                             
+ADEO_INT      1                             
+                           ...              
+ADEO_INT      FR-WM-ROLE-METI-MAG-HSCPOLYVAL
+ADEO_INT      FR-WM-ROLE-METI-MAG-N1        
+ADEO_INT      FR-WM-ROLE-METI-MAG-APPLICATIO
+ADEO_INT      1005                          
+ADEO_INT      1006                          
+Name: VCO_ZNVLRUBO, Length: 135, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+ADEO_INT      D                             
+ADEO_INT      9                             
+ADEO_INT      9                             
+ADEO_INT      7                             
+ADEO_INT      3                             
+                           ...              
+ADEO_INT      X                             
+ADEO_INT      6                             
+ADEO_INT      807                           
+ADEO_INT      1002                          
+ADEO_INT      1004                          
+Name: VCO_ZNVLRUBO, Length: 138, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>ADEO_INT  </b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+ADEO_INT                                                      1
+ADEO_INT                                                      N
+ADEO_INT                                                      9
+ADEO_INT                                                      O
+ADEO_INT                                                      O
+                                    ...                        
+ADEO_INT                                                    NaN
+ADEO_INT      701,702,703,704,705,706,751,752,753,800,803,80...
+ADEO_INT      701,702,703,704,705,706,751,752,753,800,803,80...
+ADEO_INT                                                      O
+ADEO_INT                                                      O
+Name: VCO_ZNVLRUBD, Length: 135, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+ADEO_INT        MA
+ADEO_INT        MA
+ADEO_INT      D121
+ADEO_INT       A30
+ADEO_INT       A45
+              ... 
+ADEO_INT         9
+ADEO_INT         O
+ADEO_INT         O
+ADEO_INT         O
+ADEO_INT         O
+Name: VCO_ZNVLRUBD, Length: 138, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>ADEO_INT  </b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">VCO_DSLOGORI
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+              ... 
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+Name: VCO_FLSELEC, Length: 135, dtype: object</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+              ... 
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'F'
+ADEO_INT      b'T'
+ADEO_INT      b'T'
+Name: VCO_FLSELEC, Length: 138, dtype: object</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>VTASTOSIT </b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">VCO_DSLOGORI
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITENT    
+VTASTOSIT     SITENT    
+Name: VCO_CDRUBORI, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+VTASTOSIT     SITENT    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+VTASTOSIT     SITMAG    
+Name: VCO_CDRUBORI, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>VTASTOSIT </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+VTASTOSIT     602                           
+VTASTOSIT     603                           
+VTASTOSIT     605                           
+VTASTOSIT     607                           
+VTASTOSIT     610                           
+VTASTOSIT     612                           
+VTASTOSIT     614                           
+VTASTOSIT     615                           
+VTASTOSIT     616                           
+VTASTOSIT     617                           
+VTASTOSIT     618                           
+VTASTOSIT     619                           
+VTASTOSIT     622                           
+VTASTOSIT     623                           
+VTASTOSIT     629                           
+VTASTOSIT     631                           
+VTASTOSIT     636                           
+VTASTOSIT     645                           
+VTASTOSIT     650                           
+VTASTOSIT     653                           
+VTASTOSIT     660                           
+VTASTOSIT     690                           
+VTASTOSIT     692                           
+VTASTOSIT     694                           
+VTASTOSIT     695                           
+VTASTOSIT     691                           
+VTASTOSIT     656                           
+VTASTOSIT     693                           
+VTASTOSIT     103                           
+VTASTOSIT     104                           
+VTASTOSIT     2                             
+VTASTOSIT     30                            
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+VTASTOSIT     2                             
+VTASTOSIT     406                           
+VTASTOSIT     408                           
+VTASTOSIT     412                           
+VTASTOSIT     418                           
+VTASTOSIT     427                           
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>VTASTOSIT </b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+VTASTOSIT     NaN
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>VTASTOSIT </b></td>
+                            <td class="col-name">VCO_FLSELEC</td>
+                            <td class="val-ref">VCO_DSLOGORI
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'F'
+Name: VCO_FLSELEC, dtype: object</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+VTASTOSIT     b'T'
+VTASTOSIT     b'T'
+VTASTOSIT     b'F'
+VTASTOSIT     b'F'
+VTASTOSIT     b'F'
+VTASTOSIT     b'F'
+Name: VCO_FLSELEC, dtype: object</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>E5_BLM    </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+E5_BLM        E                             
+E5_BLM        P                             
+E5_BLM        L                             
+E5_BLM        D                             
+E5_BLM        P                             
+E5_BLM        D                             
+E5_BLM        E                             
+E5_BLM        L                             
+E5_BLM        E                             
+E5_BLM        P                             
+E5_BLM        D                             
+E5_BLM        L                             
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+E5_BLM        P                             
+E5_BLM        E                             
+E5_BLM        L                             
+E5_BLM        D                             
+E5_BLM        P                             
+E5_BLM        D                             
+E5_BLM        E                             
+E5_BLM        L                             
+E5_BLM        E                             
+E5_BLM        P                             
+E5_BLM        D                             
+E5_BLM        L                             
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>ADEO_PMAG </b></td>
+                            <td class="col-name">VCO_CDRUBORI</td>
+                            <td class="val-ref">VCO_DSLOGORI
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     LSSITU    
+ADEO_PMAG     LSSITU    
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     TYPCIR    
+ADEO_PMAG     TYPCIR    
+ADEO_PMAG     TYPCIR    
+ADEO_PMAG     TYPCIR    
+ADEO_PMAG     TYPCIR    
+ADEO_PMAG     TYPOPESTK 
+ADEO_PMAG     TYPOPESTK 
+ADEO_PMAG     TYPOPESTK 
+ADEO_PMAG     TYPOPESTK 
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     UA        
+ADEO_PMAG     UA        
+Name: VCO_CDRUBORI, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     LSSITU    
+ADEO_PMAG     LSSITU    
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     INCO      
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     STARCPTMAG
+ADEO_PMAG     TYPCIR    
+ADEO_PMAG     TYPCIR    
+ADEO_PMAG     TYPCIR    
+ADEO_PMAG     TYPCIR    
+ADEO_PMAG     TYPCIR    
+ADEO_PMAG     TYPOPESTK 
+ADEO_PMAG     TYPOPESTK 
+ADEO_PMAG     TYPOPESTK 
+ADEO_PMAG     TYPOPESTK 
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     TYPRCPTMAG
+ADEO_PMAG     UA        
+ADEO_PMAG     UA        
+Name: VCO_CDRUBORI, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>ADEO_PMAG </b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+ADEO_PMAG     CFR                           
+ADEO_PMAG     CIF                           
+ADEO_PMAG     CIP                           
+ADEO_PMAG     CPT                           
+ADEO_PMAG     DAP                           
+ADEO_PMAG     DAT                           
+ADEO_PMAG     DDP                           
+ADEO_PMAG     EXW                           
+ADEO_PMAG     FAS                           
+ADEO_PMAG     FCA                           
+ADEO_PMAG     FOB                           
+ADEO_PMAG     CMDE                          
+ADEO_PMAG     RECP                          
+ADEO_PMAG     40                            
+ADEO_PMAG     45                            
+ADEO_PMAG     50                            
+ADEO_PMAG     55                            
+ADEO_PMAG     60                            
+ADEO_PMAG     70                            
+ADEO_PMAG     75                            
+ADEO_PMAG     AF                            
+ADEO_PMAG     DI                            
+ADEO_PMAG     EC                            
+ADEO_PMAG     EN                            
+ADEO_PMAG     XX                            
+ADEO_PMAG     20                            
+ADEO_PMAG     22                            
+ADEO_PMAG     23                            
+ADEO_PMAG     29                            
+ADEO_PMAG     C                             
+ADEO_PMAG     E                             
+ADEO_PMAG     H                             
+ADEO_PMAG     L                             
+ADEO_PMAG     Q                             
+ADEO_PMAG     R                             
+ADEO_PMAG     A                             
+ADEO_PMAG     K                             
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+ADEO_PMAG     CFR                           
+ADEO_PMAG     CIF                           
+ADEO_PMAG     FOB                           
+ADEO_PMAG     CMDE                          
+ADEO_PMAG     RECP                          
+ADEO_PMAG     40                            
+ADEO_PMAG     45                            
+ADEO_PMAG     CIP                           
+ADEO_PMAG     CPT                           
+ADEO_PMAG     DAP                           
+ADEO_PMAG     DAT                           
+ADEO_PMAG     DDP                           
+ADEO_PMAG     EXW                           
+ADEO_PMAG     FAS                           
+ADEO_PMAG     FCA                           
+ADEO_PMAG     50                            
+ADEO_PMAG     55                            
+ADEO_PMAG     60                            
+ADEO_PMAG     70                            
+ADEO_PMAG     75                            
+ADEO_PMAG     AF                            
+ADEO_PMAG     DI                            
+ADEO_PMAG     EC                            
+ADEO_PMAG     EN                            
+ADEO_PMAG     XX                            
+ADEO_PMAG     20                            
+ADEO_PMAG     22                            
+ADEO_PMAG     23                            
+ADEO_PMAG     29                            
+ADEO_PMAG     C                             
+ADEO_PMAG     E                             
+ADEO_PMAG     H                             
+ADEO_PMAG     L                             
+ADEO_PMAG     Q                             
+ADEO_PMAG     R                             
+ADEO_PMAG     A                             
+ADEO_PMAG     K                             
+Name: VCO_ZNVLRUBO, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>ADEO_PMAG </b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+ADEO_PMAG             CFR
+ADEO_PMAG             CIF
+ADEO_PMAG             CIP
+ADEO_PMAG             CPT
+ADEO_PMAG             DAP
+ADEO_PMAG             DAT
+ADEO_PMAG             DDP
+ADEO_PMAG             EXW
+ADEO_PMAG             FAS
+ADEO_PMAG             FCA
+ADEO_PMAG             FOB
+ADEO_PMAG        obsolete
+ADEO_PMAG     70;74;75;80
+ADEO_PMAG               3
+ADEO_PMAG               3
+ADEO_PMAG               3
+ADEO_PMAG               3
+ADEO_PMAG               3
+ADEO_PMAG               4
+ADEO_PMAG               4
+ADEO_PMAG              TR
+ADEO_PMAG              CR
+ADEO_PMAG              TR
+ADEO_PMAG              DP
+ADEO_PMAG              XX
+ADEO_PMAG              PS
+ADEO_PMAG              DC
+ADEO_PMAG              DC
+ADEO_PMAG              RC
+ADEO_PMAG               4
+ADEO_PMAG               1
+ADEO_PMAG               3
+ADEO_PMAG              17
+ADEO_PMAG              16
+ADEO_PMAG              15
+ADEO_PMAG               A
+ADEO_PMAG               K
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+ADEO_PMAG             CFR
+ADEO_PMAG             CIF
+ADEO_PMAG             FOB
+ADEO_PMAG        obsolete
+ADEO_PMAG     70;74;75;80
+ADEO_PMAG               3
+ADEO_PMAG               3
+ADEO_PMAG             CIP
+ADEO_PMAG             CPT
+ADEO_PMAG             DAP
+ADEO_PMAG             DAT
+ADEO_PMAG             DDP
+ADEO_PMAG             EXW
+ADEO_PMAG             FAS
+ADEO_PMAG             FCA
+ADEO_PMAG               3
+ADEO_PMAG               3
+ADEO_PMAG               3
+ADEO_PMAG               4
+ADEO_PMAG               4
+ADEO_PMAG              TR
+ADEO_PMAG              CR
+ADEO_PMAG              TR
+ADEO_PMAG              DP
+ADEO_PMAG              XX
+ADEO_PMAG              PS
+ADEO_PMAG              DC
+ADEO_PMAG              DC
+ADEO_PMAG              RC
+ADEO_PMAG               4
+ADEO_PMAG               1
+ADEO_PMAG               3
+ADEO_PMAG              17
+ADEO_PMAG              16
+ADEO_PMAG              15
+ADEO_PMAG               A
+ADEO_PMAG               K
+Name: VCO_ZNVLRUBD, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>FORCASTING</b></td>
+                            <td class="col-name">VCO_ZNVLRUBO</td>
+                            <td class="val-ref">VCO_DSLOGORI
+FORCASTING    DAA520                        
+FORCASTING    DB7093                        
+FORCASTING    DC143C                        
+FORCASTING    DCDCDC                        
+FORCASTING    DDA0DD                        
+                           ...              
+FORCASTING    D2691E                        
+FORCASTING    D2B48C                        
+FORCASTING    D3D3D3                        
+FORCASTING    D8BFD8                        
+FORCASTING    DA70D6                        
+Name: VCO_ZNVLRUBO, Length: 139, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+FORCASTING    000000                        
+FORCASTING    000080                        
+FORCASTING    00008B                        
+FORCASTING    0000CD                        
+FORCASTING    0000FF                        
+                           ...              
+FORCASTING    FFFAFA                        
+FORCASTING    FFFF00                        
+FORCASTING    FFFFE0                        
+FORCASTING    FFFFF0                        
+FORCASTING    FFFFFF                        
+Name: VCO_ZNVLRUBO, Length: 139, dtype: str</td>
+                        </tr>
+                    
+                        <tr>
+                            <td><b>FORCASTING</b></td>
+                            <td class="col-name">VCO_ZNVLRUBD</td>
+                            <td class="val-ref">VCO_DSLOGORI
+FORCASTING        Goldenrod
+FORCASTING    PaleVioletRed
+FORCASTING          Crimson
+FORCASTING        Gainsboro
+FORCASTING             Plum
+                  ...      
+FORCASTING        Chocolate
+FORCASTING              Tan
+FORCASTING        LightGray
+FORCASTING          Thistle
+FORCASTING           Orchid
+Name: VCO_ZNVLRUBD, Length: 139, dtype: str</td>
+                            <td class="val-tgt">VCO_DSLOGORI
+FORCASTING          Black
+FORCASTING           Navy
+FORCASTING       DarkBlue
+FORCASTING     MediumBlue
+FORCASTING           Blue
+                 ...     
+FORCASTING           Snow
+FORCASTING         Yellow
+FORCASTING    LightYellow
+FORCASTING          Ivory
+FORCASTING          White
+Name: VCO_ZNVLRUBD, Length: 139, dtype: str</td>
+                        </tr>
+                    </tbody></table></div>
+            <div class="footer">Généré par MultiRequetes Compare Engine</div>
+        </body>
+        </html>
+        

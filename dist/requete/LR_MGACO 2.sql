@@ -1,2 +1,0 @@
-SELECT TRIM(CLI_CDMAG)||';'||TRIM(ACO_AAAC)
-FROM MGACO,MGMAG WHERE aco_aaac=26 AND aco_cdac in ('11','12','011','012') and ACO_TYORI='N';

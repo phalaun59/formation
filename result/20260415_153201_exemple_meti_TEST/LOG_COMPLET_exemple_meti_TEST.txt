@@ -1,0 +1,4 @@
+=== LOG POUR WSFR427 (ora-client.retailsuite.cgi.com) ===
+------------------------------------------------------------
+=== LOG POUR WSFR418 (ora-client.retailsuite.cgi.com) ===
+------------------------------------------------------------

@@ -122,7 +122,13 @@ def init_db():
             FOREIGN KEY(sonde_id) REFERENCES sondes(id)
         )
     """)
-
+    # 8. Créer la table de types
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS TYPE_SERVER (
+            id_type_serv INTEGER PRIMARY KEY AUTOINCREMENT,
+            libelle TEXT NOT NULL
+        )
+    """)
     conn.commit()
     conn.close()
     
@@ -267,7 +273,10 @@ class CompareWindow(tk.Toplevel):
         # On centre la fenêtre
         x = (screen_width // 2) - (width // 2)
         y = (screen_height // 2) - (height // 2)
-        
+        self.show_all_env = tk.BooleanVar(value=True)
+        self.show_empty_env = tk.BooleanVar(value=True)
+        self.env_vars = {} 
+        self.type_v = tk.StringVar(value="Oracle")
         self.geometry(f"{width}x{height}+{x}+{y}")
         self.parent = parent
         self.selected_comp_id = None
@@ -279,18 +288,77 @@ class CompareWindow(tk.Toplevel):
         self.cb_ref.bind("<<ComboboxSelected>>", self._update_target_list)
     
     def _setup_ui(self):
-        """Planifie l'interface avec trois zones : Liste, Édition, et Cibles."""
-        # --- PANNEAU GAUCHE : LISTE (ÉTROIT) ---
-        frame_list = ttk.LabelFrame(self, text="Comparatifs enregistrés")
-        frame_list.pack(side="left", fill="y", padx=10, pady=10)
-        self.list_comp = tk.Listbox(frame_list, width=25, font=("Segoe UI", 10))
-        self.list_comp.pack(fill="both", expand=True, padx=5, pady=5)
+        """Interface avec bandeau de filtres en en-tête et 3 colonnes (avec scrollbar à gauche)."""
+        # Configuration de la grille principale de la fenêtre
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1) # Le corps principal s'étire en hauteur
+
+        # =========================================================================
+        # 1. BANDEAU DE FILTRES (EN-TÊTE FIXE)
+        # =========================================================================
+        f_header = ttk.LabelFrame(self, text=" Filtres d'affichage ", padding=5)
+        f_header.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
+
+        # --- Filtre SGBD ---
+        ttk.Label(f_header, text="SGBD:").pack(side="left", padx=2)
+        cb_s = ttk.Combobox(f_header, textvariable=self.type_v, values=("Oracle", "SQLite"), state="readonly", width=8)
+        cb_s.pack(side="left", padx=5)
+        cb_s.bind("<<ComboboxSelected>>", lambda e: self._refresh_targets())
+
+        ttk.Separator(f_header, orient="vertical").pack(side="left", fill="y", padx=10)
+        
+        # --- Filtres Environnements ---
+        ttk.Checkbutton(f_header, text="Tous", variable=self.show_all_env, 
+                        command=self._on_all_check).pack(side="left", padx=5)
+
+        # Chargement dynamique des types de serveurs (PROD, QUAL, etc.)
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            conn.row_factory = sqlite3.Row
+            envs = conn.execute("SELECT id_type_serv, libelle FROM TYPE_SERVER ORDER BY id_type_serv").fetchall()
+            conn.close()
+            for row in envs:
+                ident = row['id_type_serv']
+                if ident not in self.env_vars:
+                    self.env_vars[ident] = tk.BooleanVar(value=True)
+                ttk.Checkbutton(f_header, text=row['libelle'], variable=self.env_vars[ident], 
+                                command=self._refresh_targets).pack(side="left", padx=2)
+        except: 
+            pass
+
+        ttk.Checkbutton(f_header, text="Vide ⚠", variable=self.show_empty_env, 
+                        command=self._refresh_targets).pack(side="left", padx=5)
+
+        # =========================================================================
+        # 2. CONTENEUR PRINCIPAL (DESSOUS L'EN-TÊTE)
+        # =========================================================================
+        main_body = ttk.Frame(self)
+        main_body.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
+
+        # --- PANNEAU GAUCHE : LISTE AVEC SCROLLBAR ---
+        frame_list = ttk.LabelFrame(main_body, text="Comparatifs enregistrés")
+        frame_list.pack(side="left", fill="y", padx=5, pady=5)
+
+        list_container = ttk.Frame(frame_list)
+        list_container.pack(fill="both", expand=True, padx=5, pady=5)
+
+        list_scroll = ttk.Scrollbar(list_container, orient="vertical")
+        list_scroll.pack(side="right", fill="y")
+
+        self.list_comp = tk.Listbox(
+            list_container, 
+            width=25, 
+            font=("Segoe UI", 10),
+            yscrollcommand=list_scroll.set,
+            exportselection=0
+        )
+        self.list_comp.pack(side="left", fill="both", expand=True)
+        list_scroll.config(command=self.list_comp.yview)
         self.list_comp.bind("<<ListboxSelect>>", self._on_select_comp)
 
-        # --- PANNEAU CENTRAL : FORMULAIRE (MOYEN) ---
-        frame_edit = ttk.LabelFrame(self, text="Configuration du comparatif")
-        # expand=False permet de ne pas l'étirer inutilement
-        frame_edit.pack(side="left", fill="both", expand=False, padx=10, pady=10)
+        # --- PANNEAU CENTRAL : FORMULAIRE ---
+        frame_edit = ttk.LabelFrame(main_body, text="Configuration du comparatif")
+        frame_edit.pack(side="left", fill="both", expand=False, padx=5, pady=5)
 
         ttk.Label(frame_edit, text="Nom du comparatif :").pack(anchor="w", padx=5)
         self.ent_libelle = ttk.Entry(frame_edit, font=("Segoe UI", 10), width=40)
@@ -304,37 +372,43 @@ class CompareWindow(tk.Toplevel):
         self.txt_sql = tk.Text(frame_edit, height=12, width=50, font=("Consolas", 10))
         self.txt_sql.pack(fill="both", expand=True, padx=5, pady=5)
 
-        # --- Zone des Boutons d'action ---
+        # Boutons d'action
         btn_frame = ttk.Frame(frame_edit)
         btn_frame.pack(fill="x", pady=10)
-        
-        # Boutons alignés à gauche
         ttk.Button(btn_frame, text="🆕 Nouveau", command=self._clear_form).pack(side="left", padx=2)
         ttk.Button(btn_frame, text="💾 Enregistrer", command=self._save_comp).pack(side="left", padx=2)
         ttk.Button(btn_frame, text="🗑️ Supprimer", command=self._delete_comp).pack(side="left", padx=2)
-        
-        # Le bouton de lancement à droite pour bien le détacher
-        ttk.Button(btn_frame, text="🚀 LANCER LA COMPARAISON", command=self._run_comparison).pack(side="right", padx=5)
+        ttk.Button(btn_frame, text="🚀 LANCER", command=self._run_comparison).pack(side="right", padx=5)
 
-        # --- PANNEAU DROIT : CIBLES (LARGE ET EXTENSIBLE) ---
-        self.frame_targets = ttk.LabelFrame(self, text="Environnements à comparer")
-        self.frame_targets.pack(side="right", fill="both", expand=True, padx=10, pady=10)
-        
-        # Le width=550 ici règle ton problème de lecture des noms de serveurs
-        self.canvas_targets = tk.Canvas(self.frame_targets, width=550, bg="white")
+        # --- PANNEAU DROIT : CIBLES (CANVAS + SCROLLBAR) ---
+        self.frame_targets = ttk.LabelFrame(main_body, text="Environnements à comparer")
+        self.frame_targets.pack(side="right", fill="both", expand=True, padx=5, pady=5)
+
+        self.canvas_targets = tk.Canvas(self.frame_targets, width=500, bg="white")
         self.scroll_y = ttk.Scrollbar(self.frame_targets, orient="vertical", command=self.canvas_targets.yview)
-        
-        # Conteneur pour les checkbuttons
         self.scroll_frame = ttk.Frame(self.canvas_targets)
         self.canvas_window = self.canvas_targets.create_window((0, 0), window=self.scroll_frame, anchor="nw")
 
-        # Mise à jour de la zone de scroll
-        self.scroll_frame.bind("<Configure>", lambda e: self.canvas_targets.configure(scrollregion=self.canvas_targets.bbox("all")))
+        self.scroll_frame.bind("<Configure>", lambda e: self.canvas_targets.configure(
+            scrollregion=self.canvas_targets.bbox("all")
+        ))
         
         self.canvas_targets.configure(yscrollcommand=self.scroll_y.set)
         self.canvas_targets.pack(side="left", fill="both", expand=True)
         self.scroll_y.pack(side="right", fill="y")
+        
+    def _on_all_check(self):
+        """Action du bouton 'Tous' dans l'écran de comparaison"""
+        state = self.show_all_env.get()
+        for var in self.env_vars.values():
+            var.set(state)
+        self.show_empty_env.set(state)
+        self._refresh_targets()
 
+    def _refresh_targets(self):
+        """Déclenche le rechargement des schémas filtrés"""
+        self._load_ref_schemas()
+    
     def _on_close(self):
         self.parent.deiconify()
         self.destroy()
@@ -361,23 +435,49 @@ class CompareWindow(tk.Toplevel):
         self.canvas_targets.configure(scrollregion=self.canvas_targets.bbox("all"))
         
     def _load_ref_schemas(self):
-        """Récupère les schémas avec coloration par instance (Host + Service)."""
+        """Récupère les schémas filtrés avec coloration par instance et marquage PROD."""
         conn = get_db_connection()
-        # On récupère host et service pour la coloration
-        schemas = conn.execute("""
-            SELECT s.id, c.libelle, s.schema, c.host, c.service
+        conn.row_factory = sqlite3.Row 
+        
+        # 1. RÉCUPÉRATION DES FILTRES
+        db_type = self.type_v.get()
+        ids_selectionnes = [str(i) for i, v in self.env_vars.items() if v.get()]
+        filtre_vide = self.show_empty_env.get()
+
+        # 2. CONSTRUCTION DE LA REQUÊTE FILTRÉE (Ajout de id_type_serv)
+        cond_env = []
+        if ids_selectionnes:
+            cond_env.append(f"c.id_type_serv IN ({','.join(ids_selectionnes)})")
+        if filtre_vide:
+            cond_env.append("c.id_type_serv IS NULL")
+        
+        where_clause = ""
+        if cond_env:
+            where_clause = " AND (" + " OR ".join(cond_env) + ")"
+        else:
+            where_clause = " AND 1=0" 
+
+        query = f"""
+            SELECT s.id, c.libelle, s.schema, c.host, c.service, c.id_type_serv
             FROM schemas s 
             JOIN DB_conn c ON s.DB_conn_id = c.id
-            ORDER BY c.libelle ASC,c.service, s.schema ASC
-        """).fetchall()
-        conn.close()
+            WHERE UPPER(c.type_db) = UPPER(?) {where_clause}
+            ORDER BY c.libelle ASC, c.service, s.schema ASC
+        """
+        
+        try:
+            schemas = conn.execute(query, (db_type,)).fetchall()
+        except Exception as e:
+            print(f"Erreur SQL Compare : {e}")
+            schemas = []
+        finally:
+            conn.close()
 
-        # Palette de couleurs sombres
+        # 3. INITIALISATION ET NETTOYAGE UI
         colors = ["#0056b3", "#198754", "#dc3545", "#6f42c1", "#fd7e14", "#795548", "#d63384", "#495057"]
         instance_to_color = {}
         color_idx = 0
 
-        # On nettoie le scroll_frame avant de reconstruire
         for widget in self.scroll_frame.winfo_children():
             widget.destroy()
 
@@ -385,13 +485,19 @@ class CompareWindow(tk.Toplevel):
         self.schema_mapping = {}
         self.target_vars = {}
         self.target_widgets = {}
-
         display_list = []
 
+        # 4. BOUCLE DE CRÉATION DES WIDGETS
         for r in schemas:
-            s_id = r[0]
-            # Nom affiché : "Libelle - Schema"
-            full_name = f"{r[1]} - {r[2]}"
+            s_id = r['id']
+            
+            # --- Logique de marquage PROD ---
+            is_prod = (r['id_type_serv'] == 1)
+            prefix = "🚩 " if is_prod else "   "
+            bg_color = "#fff4f4" if is_prod else "white"
+
+            # Nom affiché avec préfixe
+            full_name = f"{prefix}{r['libelle']} - {r['schema']}"
             display_list.append(full_name)
             self.schema_mapping[full_name] = s_id
             
@@ -403,27 +509,31 @@ class CompareWindow(tk.Toplevel):
             
             current_color = instance_to_color[key]
 
-            # Création du Checkbutton
+            # Création du Checkbutton avec fond spécifique si PROD
             var = tk.BooleanVar()
-            # Note : Pour colorer le texte d'un ttk.Checkbutton, il faut souvent 
-            # passer par un tk.Checkbutton standard ou créer un style unique.
-            # Ici on utilise tk.Checkbutton pour la simplicité de coloration directe.
             chk = tk.Checkbutton(
                 self.scroll_frame, 
                 text=full_name, 
                 variable=var, 
-                fg=current_color,      # Couleur du texte
+                fg=current_color,
                 activeforeground=current_color,
                 anchor="w",
-                bg="white"             # Assure-toi que le fond correspond à ton scroll_frame
+                bg=bg_color, # Fond coloré si PROD
+                selectcolor="white", # Couleur de la case à cocher
+                font=("Segoe UI", 9)
             )
             chk.pack(anchor="w", padx=5, fill="x")
             
             self.target_vars[s_id] = var
             self.target_widgets[s_id] = chk
 
-        # Mise à jour de la Combobox Pivot
+        # 5. MISE À JOUR COMBOBOX PIVOT
         self.cb_ref['values'] = display_list
+        if display_list:
+            if self.cb_ref.get() not in display_list:
+                self.cb_ref.set("")
+        else:
+            self.cb_ref.set("")
 
     def _save_comp(self):
         """Enregistre le comparatif avec vérifications strictes"""
@@ -646,9 +756,6 @@ class CompareWindow(tk.Toplevel):
         webbrowser.open('file://' + os.path.abspath("Rapport_Ecarts.html")) 
 
     def _get_dataframe(self, schema_id, sql, pwd):
-        """Se connecte à Oracle et retourne un DataFrame Pandas."""
-        import oracledb
-        import pandas as pd
         
         conn_sqlite = sqlite3.connect(DB_PATH)
         # On récupère les infos de connexion via l'ID du schéma
@@ -691,12 +798,10 @@ class CompareWindow(tk.Toplevel):
         self.update_idletasks() # Force Tkinter à rafraîchir l'écran immédiatement
 
     def _run_comparison(self):
-        """Lance l'exécution de la requête et gère les logs et la comparaison."""
+        """Lance l'exécution et stoppe après 3 erreurs ou si le pivot échoue."""
         libelle = self.ent_libelle.get().strip()
         sql = self.txt_sql.get("1.0", tk.END).strip()
         pivot_name = self.cb_ref.get()
-        
-        # Nettoyage du SQL pour Oracle (Point-virgule et espaces)
         sql = sql.rstrip(';').strip()
         
         target_ids = [s_id for s_id, var in self.target_vars.items() if var.get()]
@@ -707,6 +812,12 @@ class CompareWindow(tk.Toplevel):
         pwd = simpledialog.askstring("Connexion Oracle", f"Entrez le mot de passe :", show='*')
         if not pwd: return
 
+        # --- INITIALISATION SÉCURITÉ ---
+        error_count = 0
+        max_errors = 3
+        interrupted = False
+        # -------------------------------
+
         dialog = ProgressDialog(self, title="Exécution en cours...")
         total_steps = len(target_ids) + (1 if pivot_name else 0)
         dialog.progress["maximum"] = total_steps
@@ -716,51 +827,66 @@ class CompareWindow(tk.Toplevel):
         current_step = 0
 
         try:
-            # 1. Traitement du Pivot (si sélectionné)
+            # 1. Traitement du Pivot
             if pivot_name:
                 current_step += 1
                 dialog.update(f"Phase {current_step}/{total_steps}", f"Extraction Pivot : {pivot_name}", current_step)
                 ref_id = self.schema_mapping[pivot_name]
-                df_pivot = self._get_dataframe(ref_id, sql, pwd)
                 
-                if df_pivot is not None and not df_pivot.empty:
-                    pk_col = df_pivot.columns[0]
-                    df_pivot_idx = df_pivot.set_index(pk_col)
-                    # Sauvegarde log pour le pivot
-                    self._save_log_file(pivot_name, df_pivot)
-                else:
-                    messagebox.showerror("Erreur", f"Le pivot {pivot_name} est vide.")
-                    dialog.destroy()
-                    return
+                try:
+                    df_pivot = self._get_dataframe(ref_id, sql, pwd)
+                    if df_pivot is not None and not df_pivot.empty:
+                        pk_col = df_pivot.columns[0]
+                        df_pivot_idx = df_pivot.set_index(pk_col)
+                        self._save_log_file(pivot_name, df_pivot)
+                    else:
+                        raise Exception("Données pivot vides ou invalides.")
+                except Exception as e_pivot:
+                    # SI LE PIVOT ÉCHOUE : On arrête tout de suite, pas besoin de compter jusqu'à 3
+                    raise Exception(f"ÉCHEC CRITIQUE PIVOT ({pivot_name}) : {str(e_pivot)}")
 
             # 2. Boucle sur les Cibles
             for s_id in target_ids:
+                # VÉRIFICATION DU SEUIL D'ERREURS
+                if error_count >= max_errors:
+                    interrupted = True
+                    break
+
                 target_name = [name for name, idx in self.schema_mapping.items() if idx == s_id][0]
-                if target_name == pivot_name: continue # On ne compare pas le pivot avec lui-même
+                if target_name == pivot_name: continue 
                 
                 current_step += 1
                 dialog.update(f"Phase {current_step}/{total_steps}", f"Extraction : {target_name}", current_step)
                 
-                df_target = self._get_dataframe(s_id, sql, pwd)
-                
-                if df_target is not None:
-                    self._save_log_file(target_name, df_target)
+                try:
+                    df_target = self._get_dataframe(s_id, sql, pwd)
                     
-                    # Logique de comparaison si le pivot existe
-                    if df_pivot_idx is not None:
-                        pk_col = df_target.columns[0]
-                        df_target_idx = df_target.set_index(pk_col)
-                        all_diffs[target_name] = self._compare_dataframes(df_pivot_idx, df_target_idx)
-                else:
-                    all_diffs[target_name] = {"missing": [], "extra": [], "values": [], "error": "Inaccessible"}
+                    if df_target is not None:
+                        self._save_log_file(target_name, df_target)
+                        if df_pivot_idx is not None:
+                            pk_col = df_target.columns[0]
+                            df_target_idx = df_target.set_index(pk_col)
+                            all_diffs[target_name] = self._compare_dataframes(df_pivot_idx, df_target_idx)
+                    else:
+                        raise Exception("Serveur injoignable ou erreur SQL")
+                        
+                except Exception as e_target:
+                    error_count += 1
+                    all_diffs[target_name] = {"missing": [], "extra": [], "values": [], "error": str(e_target)}
+                    print(f"Erreur sur {target_name}: {e_target}")
 
-            # 3. Rapport final
+            # 3. Rapport final (Seulement si non interrompu par sécurité)
+            if interrupted:
+                if dialog.winfo_exists(): dialog.destroy()
+                messagebox.showerror("Arrêt de sécurité", f"Le traitement a été stoppé après {max_errors} erreurs.\nAucun rapport généré.")
+                return
+
             if all_diffs:
                 dialog.update("Finalisation", "Génération du rapport HTML...", total_steps)
                 self._generate_html_report(libelle, pivot_name, all_diffs)
             
-            dialog.destroy()
-            messagebox.showinfo("Succès", "Traitement terminé. Les logs sont dans 'result' et le rapport est ouvert.")
+            if dialog.winfo_exists(): dialog.destroy()
+            messagebox.showinfo("Succès", "Traitement terminé.")
 
         except Exception as e:
             if dialog.winfo_exists(): dialog.destroy()
@@ -915,7 +1041,8 @@ class ProbeEngine:
 
     def run_all(self, db_filter=None, pack_id=None, user=None, pwd=None):
         self._internal_log(f"🔍 Recherche des sondes pour le pack ID: {pack_id}...")
-        # 1. On va chercher le nom du pack en base
+        
+        # 1. Récupération du nom du pack
         conn = self.get_sqlite_conn()
         pack_name = "Rapport"
         try:
@@ -923,34 +1050,50 @@ class ProbeEngine:
             if res:
                 pack_name = res[0]
         except Exception as e:
-            self._internal_log(f"⚠️ Impossible de récupérer le nom du pack : {e}", "WARNING")
+            self._internal_log(f"⚠️ Impossible : {e}", "WARNING")
         finally:
             conn.close()
             
         targets = self._get_probe_mapping(db_filter, pack_id)
-        
         if not targets:
-            self._internal_log(f"⚠️ Aucune sonde trouvée pour le pack {pack_id} et le type {db_filter}", "WARNING")
             return
 
         self._internal_log(f"✅ {len(targets)} sonde(s) à exécuter.")
         all_results = []
         
+        # --- INITIALISATION SÉCURITÉ ---
+        error_count = 0
+        max_errors = 3
+        interrupted = False
+        
         for target in targets:
+            # VÉRIFICATION DU SEUIL
+            if error_count >= max_errors:
+                interrupted = True
+                break
+            
             self._internal_log(f"🚀 Exécution : {target['libelle']} sur {target['host']}...")
             result = self._execute_probe(target, pwd)
             
             if result.get('error'):
+                error_count += 1
                 self._internal_log(f"❌ Erreur sur {target['libelle']}: {result['error']}", "ERROR")
             else:
                 self._internal_log(f"✔️ {target['libelle']} terminé avec succès.")
                 
             all_results.append(result)
 
-        self._internal_log("📊 Génération du rapport HTML...")
-        self._generate_html_report(all_results, pack_name)
-        self._internal_log(f"🏁 Rapport disponible : {self.report_path}")
+        # --- GESTION DE LA SORTIE ---
+        if interrupted:
+            self._internal_log("🛑 ARRÊT CRITIQUE : Trop d'erreurs. Abandon de la génération du rapport.", "ERROR")
+            # On lève une exception pour que l'interface sache que RIEN n'a été produit
+            raise Exception(f"Interruption de sécurité : {max_errors} erreurs détectées. Aucun rapport généré.")
 
+        # Si on arrive ici, c'est que tout s'est bien passé (ou moins de 3 erreurs)
+        if all_results:
+            self._internal_log("📊 Génération du rapport HTML...")
+            self._generate_html_report(all_results, pack_name)
+            self._internal_log(f"🏁 Rapport disponible : {self.report_path}")
     def _get_probe_mapping(self, db_filter, pack_id):
         """Récupère les cibles et démultiplie les sondes par schéma"""
         conn = self.get_sqlite_conn()
@@ -1263,7 +1406,9 @@ class CiblePickerWindow(tk.Toplevel):
         
         self.db_type = db_type
         self.result = current_targets 
-        
+        self.show_all_env = tk.BooleanVar(value=True)
+        self.show_empty_env = tk.BooleanVar(value=True)
+        self.env_vars = {}
         # Dictionnaires pour stocker les variables de contrôle (Checkbuttons)
         self.vars_g = {}      # Pour les Grappes (Oracle)
         self.vars_m = {}      # Pour les Schémas (Oracle)
@@ -1272,111 +1417,54 @@ class CiblePickerWindow(tk.Toplevel):
         self._build_ui()
 
     def _build_ui(self):
-        container = ttk.Frame(self, padding=15)
-        container.pack(fill="both", expand=True)
+        # Configuration de la grille
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+
+        # =========================================================================
+        # 1. BANDEAU DE FILTRES (HAUT)
+        # =========================================================================
+        f_header = ttk.LabelFrame(self, text=" Filtres d'affichage ", padding=5)
+        f_header.grid(row=0, column=0, sticky="ew", padx=10, pady=5)
+
+        ttk.Label(f_header, text=f"SGBD : {self.db_type}").pack(side="left", padx=10)
+        ttk.Separator(f_header, orient="vertical").pack(side="left", fill="y", padx=10)
         
-        conn = get_db_connection()
-        db_type_upper = self.db_type.upper()
+        ttk.Checkbutton(f_header, text="Tous", variable=self.show_all_env, 
+                        command=self._on_all_check).pack(side="left", padx=5)
+
+        # Environnements dynamiques
+        try:
+            conn = get_db_connection()
+            conn.row_factory = sqlite3.Row
+            envs = conn.execute("SELECT id_type_serv, libelle FROM TYPE_SERVER ORDER BY id_type_serv").fetchall()
+            conn.close()
+            for row in envs:
+                ident = row['id_type_serv']
+                if ident not in self.env_vars:
+                    self.env_vars[ident] = tk.BooleanVar(value=True)
+                ttk.Checkbutton(f_header, text=row['libelle'], variable=self.env_vars[ident], 
+                                command=self._refresh_lists).pack(side="left", padx=2)
+        except: pass
+
+        ttk.Checkbutton(f_header, text="Vide ⚠", variable=self.show_empty_env, 
+                        command=self._refresh_lists).pack(side="left", padx=5)
+
+        # =========================================================================
+        # 2. ZONE DE CONTENU (LISTES)
+        # =========================================================================
+        # Ce frame sera vidé et rempli par _refresh_lists
+        self.main_container = ttk.Frame(self, padding=15)
+        self.main_container.grid(row=1, column=0, sticky="nsew")
         
-        # Palette de couleurs pour la cohérence visuelle
-        colors = ["#0056b3", "#198754", "#dc3545", "#6f42c1", "#fd7e14", "#795548", "#d63384", "#495057"]
-        instance_to_color = {}
-        color_idx = 0
-
-        if db_type_upper == "SQLITE":
-            # --- VUE SQLITE ---
-            ttk.Label(container, text="📂 Sélection des fichiers SQLite :", 
-                      font=("Segoe UI", 11, "bold")).pack(anchor="w", pady=(0, 10))
-
-            scroll_frame = ttk.Frame(container)
-            scroll_frame.pack(fill="both", expand=True)
-
-            canvas = tk.Canvas(scroll_frame)
-            scrollbar = ttk.Scrollbar(scroll_frame, orient="vertical", command=canvas.yview)
-            self.scrollable_inner = ttk.Frame(canvas)
-
-            self.scrollable_inner.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-            canvas.create_window((0, 0), window=self.scrollable_inner, anchor="nw")
-            canvas.configure(yscrollcommand=scrollbar.set)
-
-            canvas.pack(side="left", fill="both", expand=True)
-            scrollbar.pack(side="right", fill="y")
-
-            res = conn.execute("SELECT id, host FROM DB_conn WHERE UPPER(type_db)='SQLITE'").fetchall()
-            
-            if not res:
-                ttk.Label(self.scrollable_inner, text="Aucune base SQLite trouvée.", foreground="gray").pack(pady=20)
-            else:
-                for r in res:
-                    is_sel = r['id'] in self.result.get('SQLITE', [])
-                    var = tk.BooleanVar(value=is_sel)
-                    self.vars_sqlite[r['id']] = var
-                    ttk.Checkbutton(self.scrollable_inner, text=r['host'], variable=var).pack(anchor="w", pady=2)
-
-        else:
-            # --- VUE ORACLE / AUTRES ---
-            body = ttk.Frame(container)
-            body.pack(fill="both", expand=True)
-            body.columnconfigure(0, weight=1)
-            body.columnconfigure(1, weight=1)
-
-            # 1. Colonne Grappes
-            f_g = ttk.LabelFrame(body, text=" Grappes (Groupes) ", padding=5)
-            f_g.grid(row=0, column=0, sticky="nsew", padx=5)
-            
-            query_g = "SELECT id, libelle, host, service FROM DB_conn WHERE UPPER(type_db)=UPPER(?) ORDER BY libelle, service"
-            grappes = conn.execute(query_g, (db_type_upper,)).fetchall()
-            
-            for g in grappes:
-                # Attribution couleur
-                key = (g['host'], g['service'])
-                if key not in instance_to_color:
-                    instance_to_color[key] = colors[color_idx % len(colors)]
-                    color_idx += 1
-                
-                is_sel = g['id'] in self.result.get('GRAPPE', [])
-                var = tk.BooleanVar(value=is_sel)
-                self.vars_g[g['id']] = var
-                
-                # Utilisation de tk.Checkbutton pour la couleur fg
-                tk.Checkbutton(f_g, text=f"{g['libelle']} ({g['service']})", 
-                               variable=var, fg=instance_to_color[key], anchor="w").pack(anchor="w", fill="x")
-
-            # 2. Colonne Schémas Individuels
-            f_m = ttk.LabelFrame(body, text=" Schémas Individuels ", padding=5)
-            f_m.grid(row=0, column=1, sticky="nsew", padx=5)
-            
-            # Correction de la requête (virgule ajoutée et colonnes sélectionnées)
-            query_m = """
-                SELECT s.id, s.code, o.libelle, o.host, o.service
-                FROM schemas s
-                JOIN DB_conn o ON s.DB_conn_id = o.id
-                WHERE UPPER(o.type_db) = ?
-                ORDER BY o.libelle, o.service, s.code
-            """
-            schemas = conn.execute(query_m, (db_type_upper,)).fetchall()
-            
-            for s in schemas:
-                # Attribution couleur (même logique pour synchroniser avec les grappes)
-                key = (s['host'], s['service'])
-                if key not in instance_to_color:
-                    instance_to_color[key] = colors[color_idx % len(colors)]
-                    color_idx += 1
-                
-                is_sel = s['id'] in self.result.get('SCHEMA', [])
-                var = tk.BooleanVar(value=is_sel)
-                self.vars_m[s['id']] = var
-                
-                # Correction ICI : on utilise 's' et non 'm'
-                tk.Checkbutton(f_m, text=f"{s['code']} ({s['libelle']})", 
-                               variable=var, fg=instance_to_color[key], anchor="w").pack(anchor="w", fill="x")
-
-        conn.close()
-
-        footer = ttk.Frame(container)
-        footer.pack(fill="x", pady=(10, 0))
+        # Pied de page fixe (Bouton Valider)
+        footer = ttk.Frame(self, padding=10)
+        footer.grid(row=2, column=0, sticky="ew")
         ttk.Button(footer, text="✅ VALIDER LA SÉLECTION", width=30, 
                    command=self._on_validate).pack(anchor="center")
+
+        # Premier chargement
+        self._refresh_lists()
 
     def _on_validate(self):
         """Enregistre les modifications dans le dictionnaire result"""
@@ -1390,7 +1478,111 @@ class CiblePickerWindow(tk.Toplevel):
         
         self.destroy() # Ferme la fenêtre
         
+    def _on_all_check(self):
+        state = self.show_all_env.get()
+        for var in self.env_vars.values():
+            var.set(state)
+        self.show_empty_env.set(state)
+        self._refresh_lists()
+
+    def _refresh_lists(self):
+        # Nettoyage du conteneur principal
+        for widget in self.main_container.winfo_children():
+            widget.destroy()
+
+        conn = get_db_connection()
+        conn.row_factory = sqlite3.Row
+        db_type_upper = self.db_type.upper()
         
+        # Préparation du filtre SQL
+        ids_selectionnes = [str(i) for i, v in self.env_vars.items() if v.get()]
+        filtre_vide = self.show_empty_env.get()
+        cond_env = []
+        if ids_selectionnes: cond_env.append(f"o.id_type_serv IN ({','.join(ids_selectionnes)})")
+        if filtre_vide: cond_env.append("o.id_type_serv IS NULL")
+        
+        where_clause = ""
+        if cond_env:
+            where_clause = " AND (" + " OR ".join(cond_env) + ")"
+        else:
+            where_clause = " AND 1=0"
+
+        colors = ["#0056b3", "#198754", "#dc3545", "#6f42c1", "#fd7e14", "#795548", "#d63384", "#495057"]
+        instance_to_color = {}
+        color_idx = 0
+
+        if db_type_upper == "SQLITE":
+            # --- VUE SQLITE ---
+            ttk.Label(self.main_container, text="📂 Sélection des fichiers SQLite :", 
+                      font=("Segoe UI", 11, "bold")).pack(anchor="w", pady=(0, 10))
+            # ... (Votre logique SQLite existante)
+        else:
+            # --- VUE ORACLE ---
+            body = ttk.Frame(self.main_container)
+            body.pack(fill="both", expand=True)
+            body.columnconfigure(0, weight=1)
+            body.columnconfigure(1, weight=1)
+
+            # 1. Colonne Grappes (Ajout id_type_serv dans SQL)
+            f_g = ttk.LabelFrame(body, text=" Grappes (Groupes) ", padding=5)
+            f_g.grid(row=0, column=0, sticky="nsew", padx=5)
+            
+            query_g = f"SELECT id, libelle, host, service, id_type_serv FROM DB_conn o WHERE UPPER(type_db)=UPPER(?) {where_clause} ORDER BY libelle"
+            grappes = conn.execute(query_g, (db_type_upper,)).fetchall()
+            
+            for g in grappes:
+                key = (g['host'], g['service'])
+                if key not in instance_to_color:
+                    instance_to_color[key] = colors[color_idx % len(colors)]
+                    color_idx += 1
+                
+                # Marquage PROD
+                is_prod = (g['id_type_serv'] == 1)
+                prefix = "🚩 " if is_prod else "   "
+                bg_color = "#fff4f4" if is_prod else "white"
+
+                is_sel = g['id'] in self.result.get('GRAPPE', [])
+                var = tk.BooleanVar(value=is_sel)
+                self.vars_g[g['id']] = var
+                
+                tk.Checkbutton(f_g, text=f"{prefix}{g['libelle']} ({g['service']})", 
+                               variable=var, fg=instance_to_color[key], 
+                               bg=bg_color, anchor="w").pack(anchor="w", fill="x")
+
+            # 2. Colonne Schémas (Ajout o.id_type_serv dans SQL)
+            f_m = ttk.LabelFrame(body, text=" Schémas Individuels ", padding=5)
+            f_m.grid(row=0, column=1, sticky="nsew", padx=5)
+            
+            query_m = f"""
+                SELECT s.id, s.code, o.libelle, o.host, o.service, o.id_type_serv
+                FROM schemas s
+                JOIN DB_conn o ON s.DB_conn_id = o.id
+                WHERE UPPER(o.type_db) = ? {where_clause}
+                ORDER BY o.libelle, o.service, s.code
+            """
+            schemas = conn.execute(query_m, (db_type_upper,)).fetchall()
+            
+            for s in schemas:
+                key = (s['host'], s['service'])
+                if key not in instance_to_color:
+                    instance_to_color[key] = colors[color_idx % len(colors)]
+                    color_idx += 1
+                
+                # Marquage PROD
+                is_prod = (s['id_type_serv'] == 1)
+                prefix = "🚩 " if is_prod else "   "
+                bg_color = "#fff4f4" if is_prod else "white"
+
+                is_sel = s['id'] in self.result.get('SCHEMA', [])
+                var = tk.BooleanVar(value=is_sel)
+                self.vars_m[s['id']] = var
+                
+                tk.Checkbutton(f_m, text=f"{prefix}{s['code']} ({s['libelle']})", 
+                               variable=var, fg=instance_to_color[key], 
+                               bg=bg_color, anchor="w").pack(anchor="w", fill="x")
+
+        conn.close()
+                
 # --- FENÊTRE : ORGANISER --- #
 class OrganiserWindow(tk.Toplevel):
     def __init__(self, master, pack_id, pack_name, db_type):
@@ -2262,8 +2454,8 @@ class ParamWindow(tk.Toplevel):
         # 1. Gestion de la taille et centrage
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
-        width = 1300
-        height = min(750, int(screen_height * 0.85))
+        width = 1400
+        height = min(850, int(screen_height * 0.85))
         x = (screen_width // 2) - (width // 2)
         y = (screen_height // 2) - (height // 2)
         self.geometry(f"{width}x{height}+{x}+{y}")
@@ -2282,7 +2474,12 @@ class ParamWindow(tk.Toplevel):
         self.Schema_oracle_var = tk.StringVar()
         self._current_oracle_id = None
         self._current_SCHEMA_id = None
+        self.id_type_serv_var = tk.IntVar(value=1)
         self.ids_o = {}
+       # Dans ton __init__
+        self.env_vars = {}  # Dictionnaire pour stocker les variables des cases à cocher
+        self.show_empty_env = tk.BooleanVar(value=True) # Pour la case "Vide"
+        self.show_all_env = tk.BooleanVar(value=True)   # Pour la case "Tous"
         # Palette de couleurs sombres pour le texte
         self.colors = ["#0056b3", "#198754", "#dc3545", "#6f42c1", "#fd7e14", "#795548", "#d63384", "#495057"]
 
@@ -2315,26 +2512,57 @@ class ParamWindow(tk.Toplevel):
         container = ttk.Frame(self, padding=10)
         container.pack(fill="both", expand=True)
 
-        # 1. SECTION TYPE SGBD
-        f_type = ttk.LabelFrame(container, text=" 1. Type de SGBD ", padding=5)
-        f_type.pack(fill="x", pady=5)
-        cb = ttk.Combobox(f_type, textvariable=self.db_type_var, values=("Oracle", "SQLite"), state="readonly")
-        cb.pack(side="left", fill="x", expand=True, padx=5)
-        cb.bind("<<ComboboxSelected>>", self._update_ui_visibility)
+        # =========================================================================
+        # 1. SECTION FILTRES (HAUT)
+        # =========================================================================
+        self.f_top = ttk.LabelFrame(container, text=" 1. Filtres d'affichage ", padding=5)
+        self.f_top.pack(fill="x", pady=(0, 5))
 
-        # 2. SECTION SERVEURS
+        ttk.Label(self.f_top, text="SGBD:").pack(side="left", padx=(5, 2))
+        cb_sgbd = ttk.Combobox(self.f_top, textvariable=self.db_type_var, 
+                               values=("Oracle", "SQLite"), state="readonly", width=10)
+        cb_sgbd.pack(side="left", padx=5)
+        cb_sgbd.bind("<<ComboboxSelected>>", lambda e: self._apply_filters())
+
+        ttk.Separator(self.f_top, orient="vertical").pack(side="left", fill="y", padx=10)
+
+        ttk.Label(self.f_top, text="Filtrer :").pack(side="left", padx=5)
+        ttk.Checkbutton(self.f_top, text="Tous", variable=self.show_all_env, 
+                        command=self._on_all_check).pack(side="left", padx=5)
+
+        # Cases dynamiques (Assure-toi que sqlite3 est importé en haut du fichier)
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            conn.row_factory = sqlite3.Row
+            envs = conn.execute("SELECT id_type_serv, libelle FROM TYPE_SERVER ORDER BY id_type_serv").fetchall()
+            conn.close()
+            for row in envs:
+                ident = row['id_type_serv']
+                if ident not in self.env_vars:
+                    self.env_vars[ident] = tk.BooleanVar(value=True)
+                ttk.Checkbutton(self.f_top, text=row['libelle'], variable=self.env_vars[ident], 
+                                command=self._apply_filters).pack(side="left", padx=2)
+        except Exception as e:
+            print(f"Erreur chargement filtres : {e}")
+
+        ttk.Checkbutton(self.f_top, text="Vide ⚠", variable=self.show_empty_env, 
+                        command=self._apply_filters).pack(side="left", padx=5)
+
+        # =========================================================================
+        # 2. SECTION CONFIGURATION DES SERVEURS
+        # =========================================================================
         self.f_net = ttk.LabelFrame(container, text=" 2. Configuration des Serveurs ", padding=5)
         self.f_net.pack(fill="both", expand=True, pady=5)
         
         f_table_o = ttk.Frame(self.f_net)
         f_table_o.pack(side="left", fill="both", expand=True)
 
-        self.tree_o = ttk.Treeview(f_table_o, columns=("h", "p", "s", "g"), show="headings", height=8)
-        for c, t in [("h", "Hôte"), ("p", "Port"), ("s", "Service/SID"), ("g", "Libellé")]:
+        self.tree_o = ttk.Treeview(f_table_o, columns=("h", "p", "s", "g"), show="headings", height=6)
+        for c, t in [("h", "Hôte"), ("p", "Port"), ("s", "Service"), ("g", "Libellé")]:
             self.tree_o.heading(c, text=t)
         
-        self.tree_o.column("p", width=60, anchor="center")
-        self.tree_o.column("h", width=200)
+        self.tree_o.column("p", width=50, anchor="center")
+        self.tree_o.column("s", width=100, anchor="center")
         
         scroll_o = ttk.Scrollbar(f_table_o, orient="vertical", command=self.tree_o.yview)
         self.tree_o.configure(yscrollcommand=scroll_o.set)
@@ -2342,58 +2570,69 @@ class ParamWindow(tk.Toplevel):
         scroll_o.pack(side="right", fill="y")
         self.tree_o.bind("<<TreeviewSelect>>", self._on_ora_sel)
         
-        # Formulaire Serveur (à droite)
-        self.form_n = ttk.Frame(self.f_net, padding=5, width=320) # Légèrement élargi
+        # Formulaire élargi pour éviter les troncatures
+        self.form_n = ttk.Frame(self.f_net, padding=5, width=380)
         self.form_n.pack(side="right", fill="y")
         self.form_n.pack_propagate(False) 
-        
-        # --- ORDRE DE PACKING FIXÉ ICI ---
-        
-        # 1. Libellé
+
+        # Champs de saisie standards
         ttk.Label(self.form_n, text="Libellé :").pack(anchor="w")
         ttk.Entry(self.form_n, textvariable=self.libelle_var).pack(fill="x", pady=2)
 
-        # 2. Hôte
         self.lbl_host = ttk.Label(self.form_n, text="Hôte :")
         self.lbl_host.pack(anchor="w")
         f_h = ttk.Frame(self.form_n)
         f_h.pack(fill="x", pady=2)
         ttk.Entry(f_h, textvariable=self.host_var).pack(side="left", fill="x", expand=True)
         self.btn_browse = ttk.Button(f_h, text="...", width=3, command=self._browse_db_file)
-        # Note: btn_browse sera affiché/masqué par _update_ui_visibility
         
-        # 3. Port (On le pack tout de suite, _update_ui_visibility gérera l'affichage)
-        self.lbl_port = ttk.Label(self.form_n, text="Port :")
+        # --- LIGNE COMMUNE OPTIMISÉE : PORT (8 car.) & SERVICE ---
+        f_line_ps = ttk.Frame(self.form_n)
+        f_line_ps.pack(fill="x", pady=2)
+        
+        # Port à largeur fixe
+        f_port = ttk.Frame(f_line_ps)
+        f_port.pack(side="left", padx=(0, 5))
+        self.lbl_port = ttk.Label(f_port, text="Port :")
         self.lbl_port.pack(anchor="w")
-        self.ent_port = ttk.Entry(self.form_n, textvariable=self.port_var)
-        self.ent_port.pack(fill="x", pady=2)
-        
-        # 4. Service
-        self.lbl_service = ttk.Label(self.form_n, text="Service / SID :")
+        self.ent_port = ttk.Entry(f_port, textvariable=self.port_var, width=8)
+        self.ent_port.pack(fill="x")
+
+        # Service occupant le reste de l'espace
+        f_serv = ttk.Frame(f_line_ps)
+        f_serv.pack(side="left", fill="x", expand=True)
+        self.lbl_service = ttk.Label(f_serv, text="Service / SID :")
         self.lbl_service.pack(anchor="w")
-        self.ent_service = ttk.Entry(self.form_n, textvariable=self.service_var)
-        self.ent_service.pack(fill="x", pady=2)
+        self.ent_service = ttk.Entry(f_serv, textvariable=self.service_var)
+        self.ent_service.pack(fill="x")
 
-        # 5. Zone des boutons (Toujours en bas grâce au packing séquentiel)
-        # Nous utilisons un frame flexible pour pousser les boutons vers le bas si nécessaire
-        spacer = ttk.Frame(self.form_n)
-        spacer.pack(fill="both", expand=True)
+        # Radios Environnement
+        ttk.Label(self.form_n, text="Type de serveur :").pack(anchor="w", pady=(5,0))
+        f_radios = ttk.Frame(self.form_n)
+        f_radios.pack(fill="x")
+        for txt, val in [("PROD", 1), ("QUAL", 2), ("PREP", 3)]:
+            ttk.Radiobutton(f_radios, text=txt, variable=self.id_type_serv_var, value=val).pack(side="left", padx=2)
 
-        btn_grid = ttk.Frame(self.form_n, padding=5)
-        btn_grid.pack(fill="x", side="bottom", pady=5) 
-        
-        ttk.Button(btn_grid, text="➕ Nouveau", command=self._add_connection).grid(row=0, column=0, sticky="ew", padx=2)
-        ttk.Button(btn_grid, text="💾 Sauver", command=self._save_o).grid(row=0, column=1, sticky="ew", padx=2)
-        ttk.Button(btn_grid, text="🗑️ Supprimer", command=self._delete_connection).grid(row=1, column=0, columnspan=2, sticky="ew", pady=5)
-        ttk.Button(btn_grid, text="📥 Importer JSON", command=self._import_json).grid(row=2, column=0, columnspan=2, sticky="ew", pady=2)
-        # 3. SECTION SCHÉMAS
+        # Grille de boutons Serveur (en bas)
+        btn_grid = ttk.Frame(self.form_n, padding=(0, 10))
+        btn_grid.pack(fill="x", side="bottom")
+        btn_grid.columnconfigure(0, weight=1); btn_grid.columnconfigure(1, weight=1)
+
+        ttk.Button(btn_grid, text="➕ Nouveau", command=self._add_connection).grid(row=0, column=0, sticky="ew", padx=2, pady=2)
+        ttk.Button(btn_grid, text="💾 Sauver", command=self._save_o).grid(row=0, column=1, sticky="ew", padx=2, pady=2)
+        ttk.Button(btn_grid, text="🗑️ Supprimer", command=self._delete_connection).grid(row=1, column=0, sticky="ew", padx=2, pady=2)
+        ttk.Button(btn_grid, text="📥 JSON", command=self._import_json).grid(row=1, column=1, sticky="ew", padx=2, pady=2)
+
+        # =========================================================================
+        # 3. SECTION SCHÉMAS (BAS)
+        # =========================================================================
         self.f_mag = ttk.LabelFrame(container, text=" 3. Configuration des Schémas ", padding=5)
         self.f_mag.pack(fill="both", expand=True, pady=5)
         
         f_table_m = ttk.Frame(self.f_mag)
         f_table_m.pack(side="left", fill="both", expand=True)
 
-        self.tree_m = ttk.Treeview(f_table_m, columns=("c", "s", "g"), show="headings", height=8)
+        self.tree_m = ttk.Treeview(f_table_m, columns=("c", "s", "g"), show="headings", height=6)
         for c, t in [("c", "Code"), ("s", "Schéma SQL"), ("g", "Serveur lié")]:
             self.tree_m.heading(c, text=t)
         
@@ -2403,7 +2642,7 @@ class ParamWindow(tk.Toplevel):
         scroll_m.pack(side="right", fill="y")
         self.tree_m.bind("<<TreeviewSelect>>", self._on_schema_sel)
 
-        form_m = ttk.Frame(self.f_mag, padding=5, width=300)
+        form_m = ttk.Frame(self.f_mag, padding=5, width=380)
         form_m.pack(side="right", fill="y")
         form_m.pack_propagate(False)
         
@@ -2415,14 +2654,50 @@ class ParamWindow(tk.Toplevel):
         self.cb_o = ttk.Combobox(form_m, textvariable=self.Schema_oracle_var, state="readonly")
         self.cb_o.pack(fill="x", pady=2)
         
-        btn_m_grid = ttk.Frame(form_m)
-        btn_m_grid.pack(fill="x", pady=10)
-        tk.Button(btn_m_grid, text="Completer via MXDOS", command=self._open_import_schemas_popup, bg="#3498db", fg="white").pack(fill="x", pady=2)
-        ttk.Button(btn_m_grid, text="💾 Sauver", command=self._save_m).pack(fill="x", pady=2)
-        ttk.Button(btn_m_grid, text="✨ Nouveau", command=self._reset_schema_fields).pack(fill="x", pady=2)
-        ttk.Button(btn_m_grid, text="🗑️ Supprimer", command=self._delete_m).pack(fill="x", pady=2)
-
-    # AJOUTER CETTE MÉTHODE DANS LA CLASSE AUSSI
+        # Grille d'actions schémas (en bas)
+        btn_m_act = ttk.Frame(form_m)
+        btn_m_act.pack(fill="x", side="bottom", pady=5)
+        
+        tk.Button(btn_m_act, text="Import MXDOS", command=self._open_import_schemas_popup, 
+                  bg="#3498db", fg="white", relief="flat").pack(fill="x", pady=2)
+        
+        f_sub_m = ttk.Frame(btn_m_act)
+        f_sub_m.pack(fill="x")
+        f_sub_m.columnconfigure(0, weight=1); f_sub_m.columnconfigure(1, weight=1)
+        
+        ttk.Button(f_sub_m, text="💾 Sauver", command=self._save_m).grid(row=0, column=0, sticky="ew", padx=1)
+        ttk.Button(f_sub_m, text="✨ Nouveau", command=self._reset_schema_fields).grid(row=0, column=1, sticky="ew", padx=1)
+        ttk.Button(f_sub_m, text="🗑️ Supprimer", command=self._delete_m).grid(row=1, column=0, columnspan=2, sticky="ew", pady=2)
+    def _on_all_check(self):
+        """Coche ou décoche toutes les cases d'environnement d'un coup."""
+        # On récupère l'état de la case "Tous" (True ou False)
+        nouveau_statut = self.show_all_env.get()
+        
+        # On applique ce statut à toutes les cases dynamiques (PROD, QUALIF...)
+        for var in self.env_vars.values():
+            var.set(nouveau_statut)
+            
+        # On applique aussi à la case "Vide"
+        self.show_empty_env.set(nouveau_statut)
+        
+        # On lance le rafraîchissement des données
+        self._apply_filters()
+        
+    def _apply_filters(self):
+        """Recharge les données en fonction des cases cochées."""
+        # On réinitialise les sélections pour éviter les erreurs d'IDs
+        self._current_oracle_id = None
+        self._current_schema_id = None
+        
+        # On recharge les serveurs (Tableau 2)
+        self._load_server()
+        # On recharge les schémas (Tableau 3)
+        self._load_schema()
+        
+        # On met à jour la visibilité (bouton browse, etc.)
+        if hasattr(self, '_update_ui_visibility'):
+            self._update_ui_visibility()
+            
     def _treeview_sort_column(self, tree, col, reverse):
         l = [(tree.set(k, col), k) for k in tree.get_children('')]
         try:
@@ -2471,35 +2746,68 @@ class ParamWindow(tk.Toplevel):
             conn.row_factory = sqlite3.Row
             t = self.db_type_var.get()
             
+            ids_selectionnes = [str(ident) for ident, var in self.env_vars.items() if var.get()]
+            filtre_vide = self.show_empty_env.get()
+
             self.tree_o.delete(*self.tree_o.get_children())
             self.ids_o = {} 
             instance_to_color_idx = {}
             next_color_idx = 0
 
-            # Tri alphabétique propre
-            query = "SELECT * FROM DB_conn WHERE type_db=? ORDER BY LOWER(TRIM(libelle)) ASC, LOWER(TRIM(service)) ASC"
-            res = conn.execute(query, (t,)).fetchall()
+            base_query = """
+                SELECT o.*, ts.libelle as env_label 
+                FROM DB_conn o
+                LEFT JOIN TYPE_SERVER ts ON o.id_type_serv = ts.id_type_serv
+                WHERE o.type_db=?
+            """
             
+            conditions_env = []
+            if ids_selectionnes:
+                conditions_env.append(f"o.id_type_serv IN ({','.join(ids_selectionnes)})")
+            
+            if filtre_vide:
+                conditions_env.append("o.id_type_serv IS NULL")
+
+            if conditions_env:
+                final_query = base_query + " AND (" + " OR ".join(conditions_env) + ")"
+            else:
+                final_query = base_query + " AND 1=0"
+
+            final_query += " ORDER BY LOWER(TRIM(o.libelle)) ASC, LOWER(TRIM(o.service)) ASC"
+            
+            res = conn.execute(final_query, (t,)).fetchall()
+            
+            # Définition du tag pour le fond de la PROD (Rose pâle)
+            self.tree_o.tag_configure("prod_bg", background="#fff4f4")
+
             for r in res:
-                # Clé unique pour la couleur : (Host, Service)
                 key = (r["host"], r["service"])
                 if key not in instance_to_color_idx:
                     instance_to_color_idx[key] = next_color_idx % len(self.colors)
                     next_color_idx += 1
                 
-                tag_name = f"color_{instance_to_color_idx[key]}"
+                # Récupération des tags : Couleur d'instance + Fond si PROD
+                tags = [f"color_{instance_to_color_idx[key]}"]
+                prefix = ""
+                if r["id_type_serv"] == 1:
+                    tags.append("prod_bg")
+                    prefix = "🚩 "
+
+                env_txt = r["env_label"] if r["env_label"] else "N/A"
 
                 item_id = self.tree_o.insert("", "end", values=(
                     r["host"], 
                     r["port"], 
                     r["service"], 
-                    r["libelle"]
-                ), tags=(tag_name,)) # Application du tag
+                    f"{prefix}{r['libelle']}", # Ajout du drapeau sur le libellé
+                    env_txt  
+                ), tags=tuple(tags))
                 
                 self.ids_o[item_id] = r["id"]
 
-            self.cb_o["values"] = [f"{r['id']} | {r['libelle']}" for r in res]
+            self.cb_o["values"] = [f"{r['id']} | {r['libelle']} [{r['env_label'] or '?'}]" for r in res]
             conn.close()
+            
         except Exception as e: 
             print(f"Erreur load_server: {e}")
 
@@ -2509,35 +2817,59 @@ class ParamWindow(tk.Toplevel):
             conn.row_factory = sqlite3.Row
             t = self.db_type_var.get()
             
+            ids_selectionnes = [str(ident) for ident, var in self.env_vars.items() if var.get()]
+            filtre_vide = self.show_empty_env.get()
+
             self.tree_m.delete(*self.tree_m.get_children())
-            
-            # On réinitialise le dictionnaire de couleurs pour être raccord avec le tri
             instance_to_color_idx = {}
             next_color_idx = 0
 
-            # Tri par Libellé serveur puis par Code schéma
-            query = """SELECT s.id, s.code, s.schema, s.DB_conn_id, o.libelle, o.host, o.service 
-                       FROM schemas s 
-                       JOIN DB_conn o ON s.DB_conn_id = o.id 
-                       WHERE o.type_db=?
-                       ORDER BY o.libelle,o.service, s.code"""
+            base_query = """
+                SELECT s.id, s.code, s.schema, s.DB_conn_id, o.libelle, o.host, o.service, o.id_type_serv
+                FROM schemas s 
+                JOIN DB_conn o ON s.DB_conn_id = o.id 
+                WHERE o.type_db=?
+            """
+
+            conditions_env = []
+            if ids_selectionnes:
+                conditions_env.append(f"o.id_type_serv IN ({','.join(ids_selectionnes)})")
             
-            res = conn.execute(query, (t,)).fetchall()
+            if filtre_vide:
+                conditions_env.append("o.id_type_serv IS NULL")
+
+            if conditions_env:
+                final_query = base_query + " AND (" + " OR ".join(conditions_env) + ")"
+            else:
+                final_query = base_query + " AND 1=0"
+
+            final_query += " ORDER BY o.libelle, o.service, s.code"
+            
+            res = conn.execute(final_query, (t,)).fetchall()
+            
+            # Définition du tag pour le fond de la PROD
+            self.tree_m.tag_configure("prod_bg", background="#fff4f4")
+
             for r in res:
-                # Même clé unique (Host, Service)
                 key = (r["host"], r["service"])
                 if key not in instance_to_color_idx:
                     instance_to_color_idx[key] = next_color_idx % len(self.colors)
                     next_color_idx += 1
                 
-                tag_name = f"color_{instance_to_color_idx[key]}"
+                # Récupération des tags et préfixe si serveur parent est en PROD
+                tags = [f"color_{instance_to_color_idx[key]}"]
+                prefix = ""
+                if r["id_type_serv"] == 1:
+                    tags.append("prod_bg")
+                    prefix = "🚩 "
+                
                 display_server = f"{r['DB_conn_id']} | {r['libelle']}"
                 
                 self.tree_m.insert("", "end", iid=r["id"], values=(
-                    r["code"], 
+                    f"{prefix}{r['code']}", # Ajout du drapeau sur le code schéma
                     r["schema"], 
                     display_server
-                ), tags=(tag_name,)) # Application du tag
+                ), tags=tuple(tags))
             
             conn.close()
         except Exception as e:
@@ -2545,13 +2877,9 @@ class ParamWindow(tk.Toplevel):
 
  
     def _process_multi_schema_import(self, list_server_info):
-        """
-        list_server_info contient : [(id, lib, host, serv, port), ...]
-        """
         if not list_server_info:
             return
 
-        # 1. Identification unique
         first_srv_lib = list_server_info[0][1]
         dialog = OracleLoginDialog(self, "Identification Oracle Groupée", f"Accès MXDOS (ex: {first_srv_lib})")
         
@@ -2563,6 +2891,7 @@ class ParamWindow(tk.Toplevel):
 
         conn_sqlite = None
         total_added = 0
+        total_deleted = 0 # --- NOUVEAU ---
         report = []
 
         try:
@@ -2571,12 +2900,11 @@ class ParamWindow(tk.Toplevel):
 
             for srv_info in list_server_info:
                 srv_id, srv_lib, srv_host, srv_serv, srv_port = srv_info
-                
                 srv_port = srv_port or "1521"
                 srv_added = 0
+                srv_deleted = 0 # --- NOUVEAU ---
                 
                 try:
-                    # Nettoyage des chaînes
                     h = srv_host.strip()
                     s = srv_serv.strip()
                     p = str(srv_port).strip()
@@ -2596,9 +2924,24 @@ class ParamWindow(tk.Toplevel):
                             ORDER BY TRIM(XDOS_ID)
                         """
                         cursor_ora.execute(sql, {"v_srv": s})
-                        
                         rows = cursor_ora.fetchall()
 
+                        # --- NOUVEAU : GESTION DE LA SUPPRESSION ---
+                        # 1. Lister les schémas Oracle (dans le fichier/serveur)
+                        # On crée un set des noms de schémas trouvés sur Oracle pour ce serveur
+                        oracle_schemas = {r[1] for r in rows if r[1]}
+
+                        # 2. Lister les schémas SQLite actuels pour ce serveur
+                        cur_sq.execute("SELECT schema FROM schemas WHERE DB_conn_id = ?", (srv_id,))
+                        sqlite_schemas = {row[0] for row in cur_sq.fetchall()}
+
+                        # 3. Identifier et supprimer les schémas qui ne sont plus sur Oracle
+                        to_delete = sqlite_schemas - oracle_schemas
+                        for schema_to_del in to_delete:
+                            cur_sq.execute("DELETE FROM schemas WHERE DB_conn_id = ? AND schema = ?", (srv_id, schema_to_del))
+                            srv_deleted += 1
+
+                        # --- REPRISE DE L'INSERTION/MISE À JOUR ---
                         for r in rows:
                             v_code, v_schema = r[0], r[1]
                             if not v_schema: continue
@@ -2612,18 +2955,17 @@ class ParamWindow(tk.Toplevel):
                         
                         conn_sqlite.commit()
                         total_added += srv_added
-                        report.append(f"✔️ {srv_lib} : {srv_added} schémas")
+                        total_deleted += srv_deleted
+                        
+                        msg = f"✔️ {srv_lib} : +{srv_added}"
+                        if srv_deleted > 0:
+                            msg += f" / -{srv_deleted} schémas"
+                        else:
+                            msg += " schémas"
+                        report.append(msg)
 
                 except Exception as srv_err:
-                    err_msg = str(srv_err)
-                    if "11002" in err_msg or "getaddrinfo" in err_msg:
-                        friendly_err = "Nom d'hôte inconnu (DNS)."
-                    elif "timeout" in err_msg.lower():
-                        friendly_err = "Délai dépassé (Serveur injoignable)."
-                    else:
-                        friendly_err = err_msg
-                    
-                    report.append(f"❌ {srv_lib} : {friendly_err}")
+                    report.append(f"❌ {srv_lib} : {str(srv_err)}")
                     continue
 
         except Exception as e: 
@@ -2637,9 +2979,10 @@ class ParamWindow(tk.Toplevel):
             self._load_schema()
             
             bilan_msg = "\n".join(report)
-            if total_added > 0 or report:
-                messagebox.showinfo("Bilan Import MXDOS", f"Total schémas importés : {total_added}\n\nDétails :\n{bilan_msg}")
-
+            res_txt = f"Total schémas ajoutés : {total_added}\nTotal schémas supprimés : {total_deleted}"
+            if total_added > 0 or total_deleted > 0 or report:
+                messagebox.showinfo("Bilan Sync MXDOS", f"{res_txt}\n\nDétails :\n{bilan_msg}")
+                
     # --- LOGIQUE SUPPRESSION / SAUVEGARDE ---
     def _delete_m(self):
         """Supprime les schémas sélectionnés et nettoie Comparatifs ET Sondes."""
@@ -2696,17 +3039,42 @@ class ParamWindow(tk.Toplevel):
 
     def _save_o(self):
         try:
-            conn = sqlite3.connect(DB_PATH); cur = conn.cursor()
+            conn = sqlite3.connect(DB_PATH)
+            cur = conn.cursor()
+            
+            # Récupération des valeurs
+            t_db = self.db_type_var.get()
+            h = self.host_var.get().strip()
+            p = self.port_var.get().strip()
+            s = self.service_var.get().strip()
+            l = self.libelle_var.get().strip()
+            id_type_env = self.id_type_serv_var.get() # La valeur du bouton radio (1, 2 ou 3)
+
             if self._current_oracle_id:
-                cur.execute("UPDATE DB_conn SET host=?, port=?, service=?, libelle=? WHERE id=?",
-                           (self.host_var.get(), self.port_var.get(), self.service_var.get(), self.libelle_var.get(), self._current_oracle_id))
+                # MISE À JOUR (UPDATE)
+                cur.execute("""
+                    UPDATE DB_conn 
+                    SET host=?, port=?, service=?, libelle=?, id_type_serv=? 
+                    WHERE id=?
+                """, (h, p, s, l, id_type_env, self._current_oracle_id))
             else:
-                cur.execute("INSERT INTO DB_conn (type_db, host, port, service, libelle) VALUES (?,?,?,?,?)", 
-                           (self.db_type_var.get(), self.host_var.get(), self.port_var.get(), self.service_var.get(), self.libelle_var.get()))
-            conn.commit(); conn.close()
-            self._load_server(); self._load_schema()
-            messagebox.showinfo("Succès", "Serveur enregistré.")
-        except Exception as e: messagebox.showerror("Erreur", str(e))
+                # NOUVEL ENREGISTREMENT (INSERT)
+                cur.execute("""
+                    INSERT INTO DB_conn (type_db, host, port, service, libelle, id_type_serv) 
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (t_db, h, p, s, l, id_type_env))
+            
+            conn.commit()
+            conn.close()
+            
+            # Rechargement des listes
+            self._load_server()
+            self._load_schema()
+            
+            messagebox.showinfo("Succès", "Serveur enregistré avec succès.")
+            
+        except Exception as e: 
+            messagebox.showerror("Erreur", f"Erreur lors de la sauvegarde : {str(e)}")
 
     def _save_m(self):
         if not self.cb_o.get(): 
@@ -2729,10 +3097,30 @@ class ParamWindow(tk.Toplevel):
     def _on_ora_sel(self, event):
         sel = self.tree_o.selection()
         if sel:
-            self._current_oracle_id = sel[0]
-            v = self.tree_o.item(sel[0], 'values')
-            self.host_var.set(v[0]); self.port_var.set(v[1]); self.service_var.set(v[2]); self.libelle_var.set(v[3])
-
+            # 1. On récupère le VRAI ID SQL grâce au dictionnaire de correspondance
+            item_tkinter = sel[0]
+            db_id = self.ids_o.get(item_tkinter)
+            self._current_oracle_id = db_id 
+            
+            # 2. On récupère les valeurs affichées pour remplir les champs texte
+            v = self.tree_o.item(item_tkinter, 'values')
+            self.host_var.set(v[0])
+            self.port_var.set(v[1])
+            self.service_var.set(v[2])
+            self.libelle_var.set(v[3])
+            
+            try:
+                conn = sqlite3.connect(DB_PATH)
+                conn.row_factory = sqlite3.Row
+                r = conn.execute("SELECT id_type_serv FROM DB_conn WHERE id=?", (db_id,)).fetchone()
+                conn.close()
+                
+                if r and r["id_type_serv"] is not None:
+                    self.id_type_serv_var.set(r["id_type_serv"])
+                else:
+                    self.id_type_serv_var.set(0) # Rien de coché si non défini
+            except:
+                self.id_type_serv_var.set(0)
     def _on_schema_sel(self, e):
         s = self.tree_m.selection()
         if s: 
@@ -2745,8 +3133,16 @@ class ParamWindow(tk.Toplevel):
         self.schema_code_var.set(""); self.nom_schema_var.set(""); self.cb_o.set("")
 
     def _add_connection(self):
-        self.host_var.set(""); self.service_var.set(""); self.libelle_var.set(""); self._current_oracle_id = None
-
+        # Réinitialisation des champs texte
+        self.host_var.set("")
+        self.port_var.set("1521") # On remet le port par défaut
+        self.service_var.set("")
+        self.libelle_var.set("")
+        
+        # Réinitialisation de l'ID courant (indispensable pour passer en mode INSERT)
+        self._current_oracle_id = None
+        self.id_type_serv_var.set(0)
+        self.tree_o.selection_remove(self.tree_o.selection())
     def _delete_connection(self):
         """Supprime les serveurs sélectionnés et nettoie ABSOLUMENT TOUT."""
         sel = self.tree_o.selection()
@@ -3078,6 +3474,10 @@ class MultiRequetesApp(tk.Tk):
         init_db_compare()
         
         self.type_v = tk.StringVar(value="Oracle")
+        # --- Variables de filtrage ---
+        self.show_all_env = tk.BooleanVar(value=True)
+        self.show_empty_env = tk.BooleanVar(value=True)
+        self.env_vars = {}
         # Palette de couleurs pour différencier les serveurs
         SERVER_COLORS = ["#e1f5fe", "#fff3e0", "#f3e5f5", "#e8f5e9", "#ffebee", "#f1f8e9", "#fffde7", "#efebe9"]
         self.file_v = tk.StringVar() 
@@ -3089,25 +3489,61 @@ class MultiRequetesApp(tk.Tk):
 
     def _build_ui(self):
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=3)
-        self.grid_rowconfigure(2, weight=1)
+        self.grid_rowconfigure(2, weight=3) # Décale les lignes pour laisser place au filtre
+        self.grid_rowconfigure(3, weight=1)
+
+        container = ttk.Frame(self, padding=10)
+        container.grid(row=0, column=0, sticky="nsew")
+
+        # =========================================================================
+        # 0. NOUVEAU : SECTION FILTRES (HAUT)
+        # =========================================================================
+        self.f_filter = ttk.LabelFrame(self, text=" Filtres d'affichage ", padding=5)
+        self.f_filter.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 0))
+
+        # --- Choix du SGBD (Remplace celui qui était dans "Configuration") ---
+        ttk.Label(self.f_filter, text="SGBD:").pack(side="left", padx=(5, 2))
+        cb_sgbd = ttk.Combobox(self.f_filter, textvariable=self.type_v, 
+                               values=("Oracle", "SQLite"), state="readonly", width=10)
+        cb_sgbd.pack(side="left", padx=5)
+        cb_sgbd.bind("<<ComboboxSelected>>", lambda e: self._refresh_all_lists())
+
+        ttk.Separator(self.f_filter, orient="vertical").pack(side="left", fill="y", padx=10)
+
+        # --- Filtres Environnement ---
+        ttk.Label(self.f_filter, text="Filtrer :").pack(side="left", padx=5)
+        
+        ttk.Checkbutton(self.f_filter, text="Tous", variable=self.show_all_env, 
+                        command=self._on_all_check).pack(side="left", padx=5)
+
+        # Chargement dynamique des cases à cocher TYPE_SERVER
+        try:
+            conn = get_db_connection()
+            conn.row_factory = sqlite3.Row
+            envs = conn.execute("SELECT id_type_serv, libelle FROM TYPE_SERVER ORDER BY id_type_serv").fetchall()
+            conn.close()
+            for row in envs:
+                ident = row['id_type_serv']
+                if ident not in self.env_vars:
+                    self.env_vars[ident] = tk.BooleanVar(value=True)
+                ttk.Checkbutton(self.f_filter, text=row['libelle'], variable=self.env_vars[ident], 
+                                command=self._refresh_all_lists).pack(side="left", padx=2)
+        except: pass
+
+        ttk.Checkbutton(self.f_filter, text="Vide ⚠", variable=self.show_empty_env, 
+                        command=self._refresh_all_lists).pack(side="left", padx=5)
+
 
         # --- BANDEAU SUPÉRIEUR (Conteneur principal) ---
         top_panel = ttk.Frame(self, padding=(10, 10, 10, 5))
-        top_panel.grid(row=0, column=0, sticky="ew")
+        top_panel.grid(row=1, column=0, sticky="ew")
         
-        # 1. BLOC GAUCHE : Formulaire (SGBD, Fichier, Suffixe, Checkbox)
+        # 1. BLOC GAUCHE : Formulaire (Fichier, Suffixe, Checkbox)
         left_group = ttk.LabelFrame(top_panel, text=" Configuration de la requête ", padding=10)
         left_group.pack(side="left", fill="both", expand=True, padx=(0, 10))
-
-        # On utilise une grille interne pour aligner les champs
         left_group.columnconfigure(1, weight=1)
 
-        # Ligne 0 : SGBD
-        ttk.Label(left_group, text="SGBD :").grid(row=0, column=0, sticky="w", pady=2)
-        cb_sgbd = ttk.Combobox(left_group, textvariable=self.type_v, values=("Oracle", "SQLite"), state="readonly", width=15)
-        cb_sgbd.grid(row=0, column=1, sticky="w", padx=5, pady=2)
-        cb_sgbd.bind("<<ComboboxSelected>>", self._on_type_change)
+        # Note : Le SGBD a été déplacé dans le bandeau Filtres ci-dessus
 
         # Ligne 1 : Fichier SQL
         ttk.Label(left_group, text="Fichier SQL :").grid(row=1, column=0, sticky="w", pady=2)
@@ -3116,11 +3552,11 @@ class MultiRequetesApp(tk.Tk):
         self.cb_files.bind("<Button-1>", self._load_files)
 
         # Ligne 2 : Suffixe
-        ttk.Label(left_group, text="Suffixe :").grid(row=2, column=0, sticky="w", pady=2)
+        ttk.Label(left_group, text="Reference :").grid(row=2, column=0, sticky="w", pady=2)
         ent_suffixe = ttk.Entry(left_group, textvariable=self.custom_name_var, width=47)
         ent_suffixe.grid(row=2, column=1, sticky="w", padx=5, pady=2)
 
-        # Ligne 3 : Case à cocher (sur toute la largeur de la colonne 1)
+        # Ligne 3 : Case à cocher
         chk_log = ttk.Checkbutton(left_group, text="Concaténer les logs et csv dans un fichier unique", variable=self.concat_logs_var)
         chk_log.grid(row=3, column=1, sticky="w", padx=5, pady=5)
 
@@ -3134,9 +3570,8 @@ class MultiRequetesApp(tk.Tk):
         ttk.Button(right_group, text="📡 Sondes", command=self._open_sondes, **btn_style).pack(pady=2)
 
         # --- LE RESTE (Listbox, Console, etc.) ---
-        # Le corps principal (Listbox)
         self.body_container = ttk.Frame(self, padding=10)
-        self.body_container.grid(row=1, column=0, sticky="nsew")
+        self.body_container.grid(row=2, column=0, sticky="nsew")
         self.body_container.grid_columnconfigure(0, weight=1)
         self.body_container.grid_rowconfigure(0, weight=1)
 
@@ -3165,15 +3600,40 @@ class MultiRequetesApp(tk.Tk):
 
         # Console
         log_frame = ttk.LabelFrame(self, text=" Console d'exécution ", padding=5)
-        log_frame.grid(row=2, column=0, sticky="nsew", padx=10, pady=5)
+        log_frame.grid(row=3, column=0, sticky="nsew", padx=10, pady=5)
         self.log_text = tk.Text(log_frame, height=6, bg="#f0f8ff", font=("Consolas", 10))
         self.log_text.pack(side="left", fill="both", expand=True)
         
-        # Boutons Lancer (Bas de fenêtre)
+        # Boutons Lancer
         bottom = ttk.Frame(self, padding=10)
-        bottom.grid(row=3, column=0, sticky="ew")
+        bottom.grid(row=4, column=0, sticky="ew")
         ttk.Button(bottom, text="🚀 Lancer les requêtes", width=30, command=self._run_queries).pack(side="left", padx=5)
         ttk.Button(bottom, text="📡 Lancer les Sondes", width=30, command=self._on_launch_probes).pack(side="right", padx=5)
+
+    def _on_all_check(self):
+        """Action du bouton 'Tous'"""
+        state = self.show_all_env.get()
+        for var in self.env_vars.values():
+            var.set(state)
+        self.show_empty_env.set(state)
+        self._load_data() # On appelle la fonction maître
+
+    def _refresh_all_lists(self):
+        """Action au changement de SGBD ou d'une case à cocher"""
+        self._load_data() # On appelle la fonction maître
+
+    def _on_type_change(self, event=None):
+        """Changement Oracle/SQLite"""
+        db_type = self.type_v.get()
+        if db_type == "Oracle":
+            self.f_oracle_view.grid(row=0, column=0, sticky="nsew")
+            self.f_sqlite_view.grid_forget()
+        else:
+            self.f_sqlite_view.grid(row=0, column=0, sticky="nsew")
+            self.f_oracle_view.grid_forget()
+            self._load_sqlite_files() # Spécifique à SQLite
+            
+        self._load_data() # On recharge les données filtrées
 
     def _open_filter_popup(self):
         try:
@@ -3226,11 +3686,15 @@ class MultiRequetesApp(tk.Tk):
 
     def _load_data(self):
         conn = get_db_connection()
+        conn.row_factory = sqlite3.Row
         t = self.type_v.get()
         
-        # Palette de couleurs sombres pour le texte (lisibles sur fond blanc)
+        # 1. Récupération des filtres environnementaux
+        ids_selectionnes = [str(i) for i, v in self.env_vars.items() if v.get()]
+        filtre_vide = self.show_empty_env.get()
+
+        # Palette de couleurs pour les instances
         colors = ["#0056b3", "#198754", "#dc3545", "#6f42c1", "#fd7e14", "#795548", "#d63384", "#495057"]
-        # Ce dictionnaire va lier la combinaison (host, service) à une couleur
         instance_to_color = {}
         color_idx = 0
 
@@ -3245,51 +3709,80 @@ class MultiRequetesApp(tk.Tk):
                 self.l_sqlite.insert("end", r['libelle'])
                 self.ids_sqlite[index] = r['id']
         else:
-            # --- 1. SCHÉMAS INDIVIDUELS ---
+            # Construction de la clause WHERE
+            cond_env = []
+            if ids_selectionnes:
+                cond_env.append(f"o.id_type_serv IN ({','.join(ids_selectionnes)})")
+            if filtre_vide:
+                cond_env.append("o.id_type_serv IS NULL")
+            
+            where_clause = ""
+            if cond_env:
+                where_clause = " AND (" + " OR ".join(cond_env) + ")"
+            else:
+                where_clause = " AND 1=0"
+
+            # --- 1. SCHÉMAS INDIVIDUELS (AVEC MARQUAGE PROD) ---
             self.l_m.delete(0, "end")
-            # On récupère host et service pour la coloration
-            res_m = conn.execute("""
-                SELECT m.id, m.code, o.libelle as srv_label, o.host, o.service
+            query_m = f"""
+                SELECT m.id, m.code, o.libelle as srv_label, o.host, o.service, o.id_type_serv
                 FROM schemas m 
                 JOIN DB_conn o ON m.DB_conn_id = o.id 
-                WHERE o.type_db=?
-                ORDER BY o.libelle,o.service, m.code
-            """, (t,)).fetchall()
+                WHERE o.type_db=? {where_clause}
+                ORDER BY o.libelle, o.service, m.code
+            """
+            res_m = conn.execute(query_m, (t,)).fetchall()
             
             for index, r in enumerate(res_m):
-                # La clé unique est le couple (Host, Service)
                 key = (r['host'], r['service'])
-                
                 if key not in instance_to_color:
                     instance_to_color[key] = colors[color_idx % len(colors)]
                     color_idx += 1
                 
-                color = instance_to_color[key]
-                self.l_m.insert("end", f"{r['code']} ({r['srv_label']})")
-                self.l_m.itemconfig(index, fg=color)
+                # Logique de marquage PROD
+                is_prod = (r['id_type_serv'] == 1)
+                prefix = "🚩 " if is_prod else "   " # 3 espaces pour l'alignement avec l'icône
+                
+                self.l_m.insert("end", f"{prefix}{r['code']} ({r['srv_label']}-{r['service']})")
+                
+                # Couleur de texte (par instance)
+                self.l_m.itemconfig(index, fg=instance_to_color[key])
+                
+                # Couleur de fond si PROD
+                if is_prod:
+                    self.l_m.itemconfig(index, bg="#fff4f4") # Rose très pâle
+                
                 self.ids_m[index] = r['id']
 
-            # --- 2. GRAPPES (SERVEURS / INSTANCES) ---
+            # --- 2. GRAPPES / SERVEURS (AVEC MARQUAGE PROD) ---
             self.l_g.delete(0, "end")
-            # On s'assure de récupérer host et service ici aussi
-            res_g = conn.execute("""
-                SELECT id, libelle, host, service 
-                FROM DB_conn 
-                WHERE type_db=? 
+            query_g = f"""
+                SELECT id, libelle, host, service, id_type_serv 
+                FROM DB_conn o
+                WHERE type_db=? {where_clause}
                 ORDER BY libelle
-            """, (t,)).fetchall()
+            """
+            res_g = conn.execute(query_g, (t,)).fetchall()
             
             for index, r in enumerate(res_g):
                 key = (r['host'], r['service'])
-                
-                # On réutilise la couleur si elle a été créée par la liste des schémas
                 if key not in instance_to_color:
                     instance_to_color[key] = colors[color_idx % len(colors)]
                     color_idx += 1
                 
-                color = instance_to_color[key]
-                self.l_g.insert("end", f"{r['libelle']} ({r['service']})")
-                self.l_g.itemconfig(index, fg=color)
+                # Logique de marquage PROD
+                is_prod = (r['id_type_serv'] == 1)
+                prefix = "🚩 " if is_prod else "   "
+                
+                self.l_g.insert("end", f"{prefix}{r['libelle']} ({r['service']})")
+                
+                # Couleur de texte (par instance)
+                self.l_g.itemconfig(index, fg=instance_to_color[key])
+                
+                # Couleur de fond si PROD
+                if is_prod:
+                    self.l_g.itemconfig(index, bg="#fff4f4")
+                    
                 self.ids_g[index] = r['id'] 
                 
         conn.close()
@@ -3397,30 +3890,39 @@ class MultiRequetesApp(tk.Tk):
 
     def _execute_on_engine(self, db_type, targets, sql, pwd=None):
         sql_raw = sql.strip()
-        sql_upper = sql_raw.upper()
         
         # --- 1. RÉCUPÉRATION DES OPTIONS ---
         sql_file = self.file_v.get() 
         query_name = os.path.splitext(sql_file)[0] if sql_file else "export"
         custom_suffix = self.custom_name_var.get().strip()
-        suffix_str = f"_{custom_suffix}" if custom_suffix else ""
+        suffix_str = f"{custom_suffix}_" if custom_suffix else ""
         should_concat = self.concat_logs_var.get()
         
-        # --- 2. PRÉPARATION DU DOSSIER ET DES FICHIERS MAITRES ---
+        # --- NOUVEAU : GESTION DU SEUIL D'ERREURS ---
+        error_count = 0
+        max_errors = 3
+        # --------------------------------------------
+
+        # --- 2. PRÉPARATION DU DOSSIER ---
         ts_full = datetime.now().strftime("%Y%m%d_%H%M%S")
-        sub_folder_name = f"{ts_full}_{query_name}{suffix_str}"
+        sub_folder_name = f"{ts_full}_{suffix_str}{query_name}"
         output_dir = os.path.join(os.getcwd(), "result", sub_folder_name)
         if not os.path.exists(output_dir): os.makedirs(output_dir)
 
-        master_log_path = os.path.join(output_dir, f"LOG_COMPLET_{query_name}{suffix_str}.txt")
-        master_csv_path = os.path.join(output_dir, f"RESULTAT_GLOBAL_{query_name}{suffix_str}.csv")
+        master_log_path = os.path.join(output_dir, f"LOG_COMPLET_{suffix_str}{query_name}.txt")
+        master_csv_path = os.path.join(output_dir, f"RESULTAT_GLOBAL_{suffix_str}{query_name}.csv")
         
-        # Variable pour savoir si on a déjà écrit l'entête du CSV global
         header_written = False
-
         self._log(f"🚀 Lancement sur {len(targets)} cible(s)...")
         
         for t in targets:
+            # --- NOUVEAU : VÉRIFICATION DU SEUIL ---
+            if error_count >= max_errors:
+                self._log(f"🛑 ARRÊT DE SÉCURITÉ : {max_errors} erreurs atteintes. On stoppe l'exécution.", "ERROR")
+                messagebox.showerror("Arrêt critique", f"L'exécution a été interrompue après {max_errors} erreurs.\nVérifiez les logs pour plus de détails.")
+                break
+            # ---------------------------------------
+
             conn = None
             schema_name = t.get('schema', 'Base')
             log_entries = [f"=== SOURCE : {schema_name} ({t['host']}) ==="]
@@ -3436,26 +3938,20 @@ class MultiRequetesApp(tk.Tk):
                     # --- GESTION DES DONNÉES (CSV) ---
                     if cursor.description:
                         colnames = [d[0] for d in cursor.description]
-                        # Optionnel : Ajouter une colonne source pour savoir d'où vient la ligne
                         full_colnames = ["SOURCE_SCHEMA"] + colnames 
                         rows = cursor.fetchall()
                         
                         if should_concat:
-                            # MODE CONCATÉNATION CSV
-                            file_exists = os.path.isfile(master_csv_path)
                             with open(master_csv_path, 'a', newline='', encoding='utf-8') as f:
                                 writer = csv.writer(f, delimiter=';')
-                                # On n'écrit l'entête que si le fichier est vide/ne vient pas d'être créé
                                 if not header_written:
                                     writer.writerow(full_colnames)
                                     header_written = True
-                                # On ajoute le nom du schéma au début de chaque ligne
                                 for row in rows:
                                     writer.writerow([schema_name] + list(row))
-                            self._log(f"✅ Données de {schema_name} ajoutées au fichier global.")
+                            self._log(f"✅ Données de {schema_name} ajoutées.")
                         else:
-                            # MODE INDIVIDUEL (actuel)
-                            filename = f"{query_name}_{schema_name}{suffix_str}.csv"
+                            filename = f"{suffix_str}{query_name}_{schema_name}.csv"
                             with open(os.path.join(output_dir, filename), 'w', newline='', encoding='utf-8') as f:
                                 writer = csv.writer(f, delimiter=';')
                                 writer.writerow(colnames)
@@ -3463,9 +3959,9 @@ class MultiRequetesApp(tk.Tk):
                             self._log(f"✅ Fichier individuel créé pour {schema_name}.")
                     else:
                         conn.commit()
-                        log_entries.append("INFO: Commite exécuté (Pas de données retournées).")
+                        log_entries.append("INFO: Commite exécuté.")
 
-                    # Récupération DBMS_OUTPUT (Oracle)
+                    # Récupération DBMS_OUTPUT
                     status_var, line_var = cursor.var(int), cursor.var(str)
                     while True:
                         cursor.callproc("dbms_output.get_line", (line_var, status_var))
@@ -3473,28 +3969,33 @@ class MultiRequetesApp(tk.Tk):
                         log_entries.append(line_var.getvalue())
 
                 elif db_type == "SQLite":
-                    # (Logique similaire à adapter pour SQLite si besoin)
                     pass
 
             except Exception as e:
+                # --- NOUVEAU : INCRÉMENTATION DU COMPTEUR ---
+                error_count += 1
+                # --------------------------------------------
                 err = f"❌ ERREUR sur {schema_name} : {str(e)}"
                 self._log(err, "ERROR")
                 log_entries.append(err)
+
             finally:
                 if conn: conn.close()
             
-            # --- GESTION DES LOGS (.txt) ---
+            # Écriture des logs TXT
             log_content = "\n".join([str(i) for i in log_entries if i is not None])
             if should_concat:
                 with open(master_log_path, "a", encoding="utf-8") as f:
                     f.write(log_content + "\n" + "-"*60 + "\n")
             else:
-                log_file = os.path.join(output_dir, f"LOG_{schema_name}{suffix_str}.txt")
+                log_file = os.path.join(output_dir, f"LOG_{suffix_str}{schema_name}.txt")
                 with open(log_file, "w", encoding="utf-8") as f:
                     f.write(log_content)
 
-        self._log("🏁 Exécution terminée.")
-        messagebox.showinfo("Succès", f"Les résultats sont dans le dossier :\n{sub_folder_name}")
+        # Message de fin adapté si arrêt précoce
+        if error_count < max_errors:
+            self._log("🏁 Exécution terminée.")
+            messagebox.showinfo("Succès", f"Les résultats sont dans le dossier :\n{sub_folder_name}")
 
     def _on_launch_probes(self):
         """Lance les sondes : l'utilisateur est le schéma de la sonde"""
@@ -3565,20 +4066,7 @@ class MultiRequetesApp(tk.Tk):
             if files and not self.file_v.get(): 
                 self.cb_files.current(0)
                 
-    def _load_servers(self):
-        # 1. On vide la Listbox et le dictionnaire de mappage
-        self.l_g.delete(0, tk.END)
-        self.ids_g = {} # C'est ce dictionnaire qui manque ou est vide
-        
-        conn = get_db_connection()
-        # On récupère l'ID et le libellé de la table DB_conn
-        rows = conn.execute("SELECT id, libelle FROM DB_conn ORDER BY libelle").fetchall()
-        conn.close()
-        
-        for index, row in enumerate(rows):
-            self.l_g.insert(tk.END, row['libelle'])
-            # On stocke l'ID SQL à l'index correspondant de la Listbox
-            self.ids_g[index] = row['id']
+    
 
 if __name__ == "__main__":
     app = MultiRequetesApp(); app.mainloop()

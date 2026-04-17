@@ -13,6 +13,7 @@ from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import oracledb
+import gc
 
 
 def resource_path(relative_path):
@@ -281,6 +282,11 @@ class CompareWindow(tk.Toplevel):
         self.parent = parent
         self.selected_comp_id = None
         self.target_vars = {}  # Pour stocker les variables des Checkbuttons 🔘
+        self.schema_mapping = {}
+        # id_du_schema -> True/False
+        self.target_vars = {}
+        self.current_comp_id = None
+        self.current_comp_id = None  # ID du comparatif enregistré (si on en modifie un)
         self.protocol("WM_DELETE_WINDOW", self._on_close)
         self._setup_ui()
         self._load_ref_schemas()
@@ -288,7 +294,7 @@ class CompareWindow(tk.Toplevel):
         self.cb_ref.bind("<<ComboboxSelected>>", self._update_target_list)
     
     def _setup_ui(self):
-        """Interface avec bandeau de filtres en en-tête et 3 colonnes (avec scrollbar à gauche)."""
+        """Interface avec bandeau de filtres en en-tête et 3 colonnes (sans emojis)."""
         # Configuration de la grille principale de la fenêtre
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1) # Le corps principal s'étire en hauteur
@@ -311,7 +317,7 @@ class CompareWindow(tk.Toplevel):
         ttk.Checkbutton(f_header, text="Tous", variable=self.show_all_env, 
                         command=self._on_all_check).pack(side="left", padx=5)
 
-        # Chargement dynamique des types de serveurs (PROD, QUAL, etc.)
+        # Chargement dynamique des types de serveurs
         try:
             conn = sqlite3.connect(DB_PATH)
             conn.row_factory = sqlite3.Row
@@ -326,7 +332,8 @@ class CompareWindow(tk.Toplevel):
         except: 
             pass
 
-        ttk.Checkbutton(f_header, text="Vide ⚠", variable=self.show_empty_env, 
+        # Retrait du symbole attention (emoji)
+        ttk.Checkbutton(f_header, text="Vide", variable=self.show_empty_env, 
                         command=self._refresh_targets).pack(side="left", padx=5)
 
         # =========================================================================
@@ -372,13 +379,13 @@ class CompareWindow(tk.Toplevel):
         self.txt_sql = tk.Text(frame_edit, height=12, width=50, font=("Consolas", 10))
         self.txt_sql.pack(fill="both", expand=True, padx=5, pady=5)
 
-        # Boutons d'action
+        # Boutons d'action (Emojis remplacés par du texte)
         btn_frame = ttk.Frame(frame_edit)
         btn_frame.pack(fill="x", pady=10)
-        ttk.Button(btn_frame, text="🆕 Nouveau", command=self._clear_form).pack(side="left", padx=2)
-        ttk.Button(btn_frame, text="💾 Enregistrer", command=self._save_comp).pack(side="left", padx=2)
-        ttk.Button(btn_frame, text="🗑️ Supprimer", command=self._delete_comp).pack(side="left", padx=2)
-        ttk.Button(btn_frame, text="🚀 LANCER", command=self._run_comparison).pack(side="right", padx=5)
+        ttk.Button(btn_frame, text="Nouveau", command=self._clear_form).pack(side="left", padx=2)
+        ttk.Button(btn_frame, text="Enregistrer", command=self._save_comp).pack(side="left", padx=2)
+        ttk.Button(btn_frame, text="Supprimer", command=self._delete_comp).pack(side="left", padx=2)
+        ttk.Button(btn_frame, text="LANCER", command=self._run_comparison).pack(side="right", padx=5)
 
         # --- PANNEAU DROIT : CIBLES (CANVAS + SCROLLBAR) ---
         self.frame_targets = ttk.LabelFrame(main_body, text="Environnements à comparer")
@@ -435,7 +442,7 @@ class CompareWindow(tk.Toplevel):
         self.canvas_targets.configure(scrollregion=self.canvas_targets.bbox("all"))
         
     def _load_ref_schemas(self):
-        """Récupère les schémas filtrés avec coloration par instance et marquage PROD."""
+        """Récupère les schémas filtrés avec marquage visuel PROD via emoji."""
         conn = get_db_connection()
         conn.row_factory = sqlite3.Row 
         
@@ -444,7 +451,7 @@ class CompareWindow(tk.Toplevel):
         ids_selectionnes = [str(i) for i, v in self.env_vars.items() if v.get()]
         filtre_vide = self.show_empty_env.get()
 
-        # 2. CONSTRUCTION DE LA REQUÊTE FILTRÉE (Ajout de id_type_serv)
+        # 2. CONSTRUCTION DE LA REQUÊTE
         cond_env = []
         if ids_selectionnes:
             cond_env.append(f"c.id_type_serv IN ({','.join(ids_selectionnes)})")
@@ -468,12 +475,12 @@ class CompareWindow(tk.Toplevel):
         try:
             schemas = conn.execute(query, (db_type,)).fetchall()
         except Exception as e:
-            print(f"Erreur SQL Compare : {e}")
+            print(f"Erreur SQL : {e}")
             schemas = []
         finally:
             conn.close()
 
-        # 3. INITIALISATION ET NETTOYAGE UI
+        # 3. INITIALISATION UI
         colors = ["#0056b3", "#198754", "#dc3545", "#6f42c1", "#fd7e14", "#795548", "#d63384", "#495057"]
         instance_to_color = {}
         color_idx = 0
@@ -487,29 +494,35 @@ class CompareWindow(tk.Toplevel):
         self.target_widgets = {}
         display_list = []
 
-        # 4. BOUCLE DE CRÉATION DES WIDGETS
+        # 4. BOUCLE DE CRÉATION
         for r in schemas:
             s_id = r['id']
             
-            # --- Logique de marquage PROD ---
+            # Nettoyage ASCII (sécurité encodage)
+            clean_libelle = "".join(c for c in str(r['libelle']) if ord(c) < 128)
+            clean_schema = "".join(c for c in str(r['schema']) if ord(c) < 128)
+
+            # --- LOGIQUE DRAPEAU PROD ---
+            # Si id_type_serv == 1 (PROD), on ajoute le drapeau et un fond rosé
             is_prod = (r['id_type_serv'] == 1)
-            prefix = "🚩 " if is_prod else "   "
+            prefix = "🚩 " if is_prod else ""
             bg_color = "#fff4f4" if is_prod else "white"
 
-            # Nom affiché avec préfixe
-            full_name = f"{prefix}{r['libelle']} - {r['schema']}"
-            display_list.append(full_name)
-            self.schema_mapping[full_name] = s_id
+            # Nom complet avec Emoji
+            full_name = f"{prefix}{clean_libelle} - {clean_schema}"
             
-            # Gestion de la couleur par instance (Host, Service)
+            display_list.append(full_name)
+            # L'ID reste la vérité absolue pour le dictionnaire
+            self.schema_mapping[full_name] = s_id 
+            
+            # Gestion de la couleur par instance (Host/Service)
             key = (r['host'], r['service'])
             if key not in instance_to_color:
                 instance_to_color[key] = colors[color_idx % len(colors)]
                 color_idx += 1
-            
             current_color = instance_to_color[key]
 
-            # Création du Checkbutton avec fond spécifique si PROD
+            # Création du widget
             var = tk.BooleanVar()
             chk = tk.Checkbutton(
                 self.scroll_frame, 
@@ -518,8 +531,8 @@ class CompareWindow(tk.Toplevel):
                 fg=current_color,
                 activeforeground=current_color,
                 anchor="w",
-                bg=bg_color, # Fond coloré si PROD
-                selectcolor="white", # Couleur de la case à cocher
+                bg=bg_color,
+                selectcolor="white",
                 font=("Segoe UI", 9)
             )
             chk.pack(anchor="w", padx=5, fill="x")
@@ -527,12 +540,9 @@ class CompareWindow(tk.Toplevel):
             self.target_vars[s_id] = var
             self.target_widgets[s_id] = chk
 
-        # 5. MISE À JOUR COMBOBOX PIVOT
+        # 5. MISE À JOUR COMBOBOX
         self.cb_ref['values'] = display_list
-        if display_list:
-            if self.cb_ref.get() not in display_list:
-                self.cb_ref.set("")
-        else:
+        if display_list and self.cb_ref.get() not in display_list:
             self.cb_ref.set("")
 
     def _save_comp(self):
@@ -621,30 +631,25 @@ class CompareWindow(tk.Toplevel):
                 f.write("-" * 30 + "\n")
                 # to_string() permet de garder l'aspect tableau dans le fichier texte
                 f.write(df.to_string(index=True))
-            
-            print(f"Log généré : {filename}")
+   
         except Exception as e:
             print(f"Erreur sauvegarde log : {e}")
             
     def _compare_dataframes(self, df_ref, df_tgt):
-        """Identifie les écarts même si les données contiennent des doublons d'index."""
+        """Identifie les écarts et retourne le nom de la colonne clé."""
         common_cols = list(df_ref.columns.intersection(df_tgt.columns))
         
-        # 1. Conversion en listes de dictionnaires (orient='records')
-        # On garde l'index (la clé unique) comme une colonne normale
+        # On récupère le nom de l'index (la clé primaire)
+        pk_name = df_ref.index.name if df_ref.index.name else df_ref.index.names[0]
+        if not pk_name: pk_name = "ID" # Sécurité si aucun nom n'est trouvé
+
         ref_list = df_ref[common_cols].reset_index().to_dict(orient='records')
         tgt_list = df_tgt[common_cols].reset_index().to_dict(orient='records')
 
-        # 2. Reconstruction de dictionnaires propres en gérant les doublons d'ID
-        # On utilise le nom de la première colonne (la clé)
-        pk_name = df_ref.index.name if df_ref.index.name else df_ref.index.names[0]
-        
         def list_to_map(data_list):
             d_map = {}
             for row in data_list:
                 key = str(row.get(pk_name, ""))
-                # Si la clé existe déjà (doublon), on l'ignore ou on la suffixe
-                # Ici on garde la première occurrence pour rester stable
                 if key not in d_map:
                     d_map[key] = row
             return d_map
@@ -652,108 +657,172 @@ class CompareWindow(tk.Toplevel):
         dict_ref = list_to_map(ref_list)
         dict_tgt = list_to_map(tgt_list)
 
-        # 3. Comparaison des clés
         keys_ref = set(dict_ref.keys())
         keys_tgt = set(dict_tgt.keys())
         
         val_diffs = []
-        missing = list(keys_ref - keys_tgt)
-        extra = list(keys_tgt - keys_ref)
+        missing = sorted(list(keys_ref - keys_tgt))
+        extra = sorted(list(keys_tgt - keys_ref))
         common_keys = keys_ref.intersection(keys_tgt)
 
-        # 4. Comparaison colonne par colonne
         for key in common_keys:
             row_ref = dict_ref[key]
             row_tgt = dict_tgt[key]
-            
             for col in common_cols:
                 v_ref = str(row_ref.get(col, "")).strip()
                 v_tgt = str(row_tgt.get(col, "")).strip()
-                
-                # Nettoyage des valeurs 'nulles'
                 if v_ref.lower() in ['none', 'nan', 'nat', 'null']: v_ref = ""
                 if v_tgt.lower() in ['none', 'nan', 'nat', 'null']: v_tgt = ""
                 
                 if v_ref != v_tgt:
                     val_diffs.append({
-                        'key': key,
-                        'col': col,
-                        'ref': v_ref,
-                        'tgt': v_tgt
+                        'key': key, 'col': col, 'ref': v_ref, 'tgt': v_tgt
                     })
 
         return {
             "missing": missing,
             "extra": extra,
-            "values": val_diffs
+            "values": val_diffs,
+            "pk_name": pk_name  # <-- ON RETOURNE LE NOM DE LA COLONNE ICI
         }
     def _generate_html_report(self, title, pivot_name, all_results):
-        """Génère un rapport strictement limité aux écarts de données."""
+        """
+        Génère un rapport HTML unique horodaté.
+        Affiche précisément les noms des IDs manquants et utilise le nom de la colonne clé.
+        """
+        import os
+        import webbrowser
+        from datetime import datetime
+
+        # 1. CRÉATION DU NOM DE FICHIER UNIQUE (Format: Rapport_Nom_YYYYMMDD_HHMMSS.html)
+        now = datetime.now()
+        timestamp = now.strftime("%Y%m%d_%H%M%S")
+        # Nettoyage du titre pour le nom de fichier (enlève les caractères spéciaux)
+        clean_title = "".join(c for c in title if c.isalnum() or c in (' ', '_')).strip().replace(' ', '_')
+        filename = f"Rapport_{clean_title}_{timestamp}.html"
+        
+        # RESULT_DIR doit être défini dans ton script (ex: os.path.join(os.getcwd(), "result"))
+        report_path = os.path.join(RESULT_DIR, filename)
+        
+        date_display = now.strftime("%d/%m/%Y %H:%M:%S")
+
+        # 2. CONSTRUCTION DU CONTENU HTML
         html = f"""
         <html>
         <head>
             <meta charset="utf-8">
+            <title>Rapport {title}</title>
             <style>
-                body {{ font-family: Arial, sans-serif; margin: 20px; }}
-                .schema-block {{ border: 1px solid #ddd; padding: 15px; margin-bottom: 25px; border-radius: 5px; }}
-                table {{ border-collapse: collapse; width: 100%; margin-top: 10px; }}
-                th, td {{ border: 1px solid #ccc; padding: 10px; text-align: left; }}
-                th {{ background-color: #f8f9fa; }}
-                .key-cell {{ font-weight: bold; color: #2c3e50; }}
-                .col-cell {{ color: #e67e22; font-weight: bold; font-family: monospace; }}
-                .val-ref {{ background-color: #fdedec; color: #c0392b; }}
-                .val-tgt {{ background-color: #eafaf1; color: #1e8449; }}
+                body {{ font-family: 'Segoe UI', Arial, sans-serif; margin: 30px; background-color: #f4f7f6; color: #333; }}
+                .container {{ background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 1400px; margin: auto; }}
+                h1 {{ color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; margin-top: 0; }}
+                .metadata {{ color: #7f8c8d; font-style: italic; margin-bottom: 25px; line-height: 1.5; }}
+                .schema-block {{ border: 1px solid #ddd; padding: 20px; margin-bottom: 30px; border-radius: 8px; background: #fff; position: relative; }}
+                h2 {{ color: #2980b9; margin-top: 0; font-size: 1.25em; border-left: 5px solid #2980b9; padding-left: 10px; }}
+                
+                /* Listes d'IDs */
+                .id-section {{ margin: 15px 0; }}
+                .id-label {{ font-weight: bold; display: block; margin-bottom: 5px; }}
+                .id-list-box {{ background: #f8f9fa; border: 1px dashed #cbd5e0; padding: 12px; border-radius: 5px; font-family: 'Consolas', monospace; font-size: 0.85em; color: #4a5568; word-wrap: break-word; line-height: 1.6; }}
+                
+                /* Tableaux des écarts de valeurs */
+                table {{ border-collapse: collapse; width: 100%; margin-top: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }}
+                th, td {{ border: 1px solid #e2e8f0; padding: 10px; text-align: left; font-size: 0.9em; }}
+                th {{ background-color: #edf2f7; color: #2d3748; text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.05em; }}
+                .key-cell {{ font-weight: bold; color: #2c3e50; background: #f7fafc; width: 20%; }}
+                .col-cell {{ color: #d68910; font-weight: bold; font-family: 'Consolas', monospace; }}
+                .val-ref {{ background-color: #fff5f5; color: #c53030; }}
+                .val-tgt {{ background-color: #f0fff4; color: #276749; font-weight: bold; }}
+                
+                .no-diff {{ color: #38a169; font-weight: bold; padding: 10px; background: #f0fff4; border-radius: 5px; border: 1px solid #c6f6d5; }}
             </style>
         </head>
         <body>
-            <h1>Rapport d'écarts : {title}</h1>
-            <p><b>Référence (Pivot) :</b> {pivot_name}</p>
+            <div class="container">
+                <h1>📊 Rapport d'écarts : {title}</h1>
+                <div class="metadata">
+                    <b>Référence (Pivot) :</b> {pivot_name}<br>
+                    <b>Généré le :</b> {date_display}
+                </div>
         """
 
         for s_name, res in all_results.items():
+            # Récupération dynamique du nom de la colonne (ex: MATRICULE)
+            col_id_name = res.get('pk_name', 'ID / Clé')
+            
             html += f"<div class='schema-block'><h2>Cible : {s_name}</h2>"
 
-            # 1. Manquants (Simple liste d'IDs)
-            if res['missing']:
-                html += f"<p style='color:red;'><b>❌ IDs manquants :</b> {', '.join(map(str, res['missing']))}</p>"
-
-            # 2. Écarts de données (Tableau 4 colonnes)
-            if res['values']:
-                html += """
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID (Clé)</th>
-                            <th>Colonne en écart</th>
-                            <th>Valeur Pivot</th>
-                            <th>Valeur Cible</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                """
-                for v in res['values']:
+            # --- 1. GESTION DES ERREURS DE CONNEXION ---
+            if res.get('error'):
+                html += f"<p style='color:#e53e3e; font-weight:bold; background:#fff5f5; padding:10px; border-radius:5px;'>❌ Erreur : {res['error']}</p>"
+            else:
+                # --- 2. IDS MANQUANTS (Pivot présent, Cible absente) ---
+                if res.get('missing'):
+                    count = len(res['missing'])
+                    ids_txt = ", ".join(map(str, res['missing'][:100]))
+                    suffix = f" ... (et {count-100} autres)" if count > 100 else ""
                     html += f"""
-                        <tr>
-                            <td class="key-cell">{v['key']}</td>
-                            <td class="col-cell">{v['col']}</td>
-                            <td class="val-ref">{v['ref']}</td>
-                            <td class="val-tgt">{v['tgt']}</td>
-                        </tr>
+                    <div class="id-section">
+                        <span class="id-label" style="color:#e53e3e;">❌ {count} {col_id_name}(s) manquant(s) dans cette cible :</span>
+                        <div class="id-list-box">{ids_txt}{suffix}</div>
+                    </div>
                     """
-                html += "</tbody></table>"
-            
-            if not res['missing'] and not res['values']:
-                html += "<p style='color:green;'>✅ Aucune différence détectée.</p>"
+
+                # --- 3. IDS EN TROP (Cible présente, Pivot absent) ---
+                if res.get('extra'):
+                    count = len(res['extra'])
+                    ids_txt = ", ".join(map(str, res['extra'][:100]))
+                    suffix = f" ... (et {count-100} autres)" if count > 100 else ""
+                    html += f"""
+                    <div class="id-section">
+                        <span class="id-label" style="color:#3182ce;">➕ {count} {col_id_name}(s) en trop (absents du pivot) :</span>
+                        <div class="id-list-box">{ids_txt}{suffix}</div>
+                    </div>
+                    """
+
+                # --- 4. TABLEAU DES ÉCARTS DE VALEURS ---
+                if res.get('values'):
+                    html += f"""
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>{col_id_name}</th>
+                                <th>Colonne</th>
+                                <th>Valeur Pivot</th>
+                                <th>Valeur Cible</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                    """
+                    for v in res['values']:
+                        html += f"""
+                            <tr>
+                                <td class="key-cell">{v['key']}</td>
+                                <td class="col-cell">{v['col']}</td>
+                                <td class="val-ref">{v['ref']}</td>
+                                <td class="val-tgt">{v['tgt']}</td>
+                            </tr>
+                        """
+                    html += "</tbody></table>"
+                
+                # --- 5. CAS AUCUNE DIFFÉRENCE ---
+                if not res.get('missing') and not res.get('extra') and not res.get('values'):
+                    html += "<p class='no-diff'>✅ Aucune différence détectée sur ce schéma.</p>"
 
             html += "</div>"
 
-        html += "</body></html>"
+        html += "</div></body></html>"
 
-        with open("Rapport_Ecarts.html", "w", encoding="utf-8") as f:
-            f.write(html)
-        
-        import webbrowser, os
-        webbrowser.open('file://' + os.path.abspath("Rapport_Ecarts.html")) 
+        # 3. ÉCRITURE ET OUVERTURE DU FICHIER
+        try:
+            abs_path = os.path.abspath(report_path)
+            with open(abs_path, "w", encoding="utf-8") as f:
+                f.write(html)
+            
+            # Ouverture dans le navigateur par défaut
+            webbrowser.open('file:///' + abs_path.replace('\\', '/'))
+        except Exception as e:
+            print(f"Erreur lors de la génération du fichier HTML : {e}")
 
     def _get_dataframe(self, schema_id, sql, pwd):
         
@@ -796,101 +865,158 @@ class CompareWindow(tk.Toplevel):
         """Met à jour le texte de statut et force l'affichage"""
         self.lbl_status.config(text=text, foreground=color)
         self.update_idletasks() # Force Tkinter à rafraîchir l'écran immédiatement
+    def _get_param(self, cle, default_value):
+        """Récupère une valeur dans la table PARAMETRES."""
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            row = conn.execute("SELECT valeur FROM PARAMETRES WHERE cle = ?", (cle,)).fetchone()
+            conn.close()
+            return row[0] if row else default_value
+        except:
+            return default_value
+    def _execute_quick_count(self, schema_id, count_sql, pwd):
+        """Exécute un SELECT COUNT(*) rapide sur un schéma."""
+        try:
 
+            df_count = self._get_dataframe(schema_id, count_sql, pwd)
+            if df_count is not None:
+                return int(df_count.iloc[0, 0])
+            return 0
+        except:
+            return 0
+            
     def _run_comparison(self):
-        """Lance l'exécution et stoppe après 3 erreurs ou si le pivot échoue."""
+        """Lance l'exécution avec pré-vérification du volume total via COUNT et PARAMETRES."""
         libelle = self.ent_libelle.get().strip()
-        sql = self.txt_sql.get("1.0", tk.END).strip()
+        sql_brut = self.txt_sql.get("1.0", tk.END).strip().rstrip(';').strip()
         pivot_name = self.cb_ref.get()
-        sql = sql.rstrip(';').strip()
         
+        # 1. RÉCUPÉRATION DES CIBLES COCHÉES
         target_ids = [s_id for s_id, var in self.target_vars.items() if var.get()]
-        if not sql or not target_ids:
+        
+        if not sql_brut or not target_ids:
             messagebox.showwarning("Attention", "Veuillez renseigner le SQL et cocher au moins une cible.")
             return
 
-        pwd = simpledialog.askstring("Connexion Oracle", f"Entrez le mot de passe :", show='*')
+        # Demande du mot de passe
+        pwd = simpledialog.askstring("Connexion Oracle", "Entrez le mot de passe :", show='*')
         if not pwd: return
 
-        # --- INITIALISATION SÉCURITÉ ---
+        # 2. RÉCUPÉRATION DE LA LIMITE DANS LA TABLE PARAMETRES
+        try:
+            # On récupère la valeur max (ex: 500000)
+            max_rows_total = int(self._get_param('MAX_ROWS_COMPARE', 500000))
+        except:
+            max_rows_total = 500000
+
+        # ==========================================================
+        # PHASE 0 : SCAN DU VOLUME (COUNT) AVANT EXTRACTION
+        # ==========================================================
+        dialog_check = ProgressDialog(self, title="Vérification du volume...")
+        count_sql = f"SELECT COUNT(*) FROM ({sql_brut})"
+        total_rows_estimated = 0
+        
+        ref_id = self.schema_mapping.get(pivot_name)
+        # On vérifie le Pivot + les Cibles
+        all_ids_to_check = list(set([ref_id] + target_ids))
+        dialog_check.progress["maximum"] = len(all_ids_to_check)
+        
+        try:
+            for i, s_id in enumerate(all_ids_to_check):
+                dialog_check.update("Scan SQL", f"Vérification volume serveur {i+1}...", i+1)
+                self.update() # Force l'UI à rester réactive
+                total_rows_estimated += self._execute_quick_count(s_id, count_sql, pwd)
+            
+            dialog_check.destroy()
+
+            # --- ALERTE SI DÉPASSEMENT DU SEUIL ---
+            if total_rows_estimated > max_rows_total:
+                msg = (f"VOLUME IMPORTANT : {total_rows_estimated:,} lignes détectées.\n"
+                       f"Le seuil paramétré est de {max_rows_total:,}.\n\n"
+                       "Voulez-vous continuer l'extraction ?\n(Risque de saturation mémoire)")
+                if not messagebox.askyesno("Alerte Performance", msg):
+                    return
+        except Exception as e:
+            if dialog_check.winfo_exists(): dialog_check.destroy()
+            messagebox.showerror("Erreur Scan", f"Impossible d'estimer le volume : {e}")
+            return
+
+        # ==========================================================
+        # PHASE 1 & 2 : EXTRACTION ET COMPARAISON RÉELLE
+        # ==========================================================
         error_count = 0
         max_errors = 3
-        interrupted = False
-        # -------------------------------
-
-        dialog = ProgressDialog(self, title="Exécution en cours...")
-        total_steps = len(target_ids) + (1 if pivot_name else 0)
-        dialog.progress["maximum"] = total_steps
-
         all_diffs = {}
         df_pivot_idx = None
-        current_step = 0
+
+        dialog = ProgressDialog(self, title="Exécution de la comparaison...")
+        total_steps = len(target_ids) + 1
+        dialog.progress["maximum"] = total_steps
 
         try:
-            # 1. Traitement du Pivot
-            if pivot_name:
-                current_step += 1
-                dialog.update(f"Phase {current_step}/{total_steps}", f"Extraction Pivot : {pivot_name}", current_step)
-                ref_id = self.schema_mapping[pivot_name]
-                
-                try:
-                    df_pivot = self._get_dataframe(ref_id, sql, pwd)
-                    if df_pivot is not None and not df_pivot.empty:
-                        pk_col = df_pivot.columns[0]
-                        df_pivot_idx = df_pivot.set_index(pk_col)
-                        self._save_log_file(pivot_name, df_pivot)
-                    else:
-                        raise Exception("Données pivot vides ou invalides.")
-                except Exception as e_pivot:
-                    # SI LE PIVOT ÉCHOUE : On arrête tout de suite, pas besoin de compter jusqu'à 3
-                    raise Exception(f"ÉCHEC CRITIQUE PIVOT ({pivot_name}) : {str(e_pivot)}")
+            # --- EXTRACTION DU PIVOT ---
+            dialog.update("Phase 1/2", f"Extraction Pivot : {pivot_name}", 1)
+            self.update()
+            
+            df_pivot = self._get_dataframe(ref_id, sql_brut, pwd)
+            if df_pivot is not None and not df_pivot.empty:
+                pk_col = df_pivot.columns[0]
+                df_pivot_idx = df_pivot.set_index(pk_col)
+                self._save_log_file(pivot_name, df_pivot)
+                # Libération mémoire après log si nécessaire
+                del df_pivot
+                gc.collect() 
+            else:
+                raise Exception("Le Pivot est vide ou injoignable.")
 
-            # 2. Boucle sur les Cibles
-            for s_id in target_ids:
-                # VÉRIFICATION DU SEUIL D'ERREURS
+            # --- BOUCLE SUR LES CIBLES ---
+            for i, s_id in enumerate(target_ids):
                 if error_count >= max_errors:
-                    interrupted = True
                     break
-
-                target_name = [name for name, idx in self.schema_mapping.items() if idx == s_id][0]
-                if target_name == pivot_name: continue 
                 
-                current_step += 1
-                dialog.update(f"Phase {current_step}/{total_steps}", f"Extraction : {target_name}", current_step)
+                if s_id == ref_id: continue
+
+                t_name = next((n for n, idx in self.schema_mapping.items() if idx == s_id), "Inconnu")
+                dialog.update("Phase 2/2", f"Traitement : {t_name}", i+2)
+                self.update()
                 
                 try:
-                    df_target = self._get_dataframe(s_id, sql, pwd)
-                    
-                    if df_target is not None:
-                        self._save_log_file(target_name, df_target)
-                        if df_pivot_idx is not None:
-                            pk_col = df_target.columns[0]
-                            df_target_idx = df_target.set_index(pk_col)
-                            all_diffs[target_name] = self._compare_dataframes(df_pivot_idx, df_target_idx)
+                    df_target = self._get_dataframe(s_id, sql_brut, pwd)
+                    if df_target is not None and not df_target.empty:
+                        self._save_log_file(t_name, df_target)
+                        
+                        # Comparaison avec le Pivot
+                        pk_col = df_target.columns[0]
+                        df_target_idx = df_target.set_index(pk_col)
+                        
+                        # Appel au calcul des différences
+                        all_diffs[t_name] = self._compare_dataframes(df_pivot_idx, df_target_idx)
+                        
+                        # Nettoyage mémoire immédiat
+                        del df_target
+                        del df_target_idx
+                        gc.collect()
                     else:
-                        raise Exception("Serveur injoignable ou erreur SQL")
+                        raise Exception("Source vide ou erreur réseau")
                         
                 except Exception as e_target:
                     error_count += 1
-                    all_diffs[target_name] = {"missing": [], "extra": [], "values": [], "error": str(e_target)}
-                    print(f"Erreur sur {target_name}: {e_target}")
+                    all_diffs[t_name] = {"error": str(e_target)}
+                    print(f"Erreur sur {t_name}: {e_target}")
 
-            # 3. Rapport final (Seulement si non interrompu par sécurité)
-            if interrupted:
-                if dialog.winfo_exists(): dialog.destroy()
-                messagebox.showerror("Arrêt de sécurité", f"Le traitement a été stoppé après {max_errors} erreurs.\nAucun rapport généré.")
-                return
+            # --- FINALISATION ---
+            if dialog.winfo_exists(): dialog.destroy()
+            
+            if error_count >= max_errors:
+                messagebox.showerror("Interruption", f"Trop d'erreurs ({error_count}).")
 
             if all_diffs:
-                dialog.update("Finalisation", "Génération du rapport HTML...", total_steps)
                 self._generate_html_report(libelle, pivot_name, all_diffs)
-            
-            if dialog.winfo_exists(): dialog.destroy()
-            messagebox.showinfo("Succès", "Traitement terminé.")
+                messagebox.showinfo("Succès", "Le comparatif HTML a été généré.")
 
         except Exception as e:
             if dialog.winfo_exists(): dialog.destroy()
-            messagebox.showerror("Erreur", f"Erreur lors de l'exécution : {str(e)}")
+            messagebox.showerror("Erreur Critique", f"Le moteur s'est arrêté : {str(e)}")
 
     def _update_status(self, text, color="black"):
         """Met à jour le label de statut et force le rafraîchissement UI."""
@@ -912,41 +1038,42 @@ class CompareWindow(tk.Toplevel):
 
     
     def _update_target_list(self, event=None):
-        """Masque le schéma de référence de la liste des cibles et le décoche"""
+        """Masque le pivot de la liste des cibles (compatible avec les drapeaux)."""
         pivot_display = self.cb_ref.get()
         if not pivot_display:
             return
 
+        # On récupère l'ID via le nom (qui contient maintenant peut-être un drapeau)
         ref_id = self.schema_mapping.get(pivot_display)
 
-        # On parcourt tous les widgets de la zone de droite
-        # (On suppose que chaque checkbutton est un enfant de self.scroll_frame)
-        for widget in self.scroll_frame.winfo_children():
-            # On récupère l'ID associé au texte du checkbutton
-            # (ou on utilise un dictionnaire de widgets si tu en as créé un)
-            schema_name = widget.cget("text")
-            schema_id = self.schema_mapping.get(schema_name)
-
-            if schema_id == ref_id:
-                # C'est le pivot : on le décoche, on le désactive et on le cache
-                self.target_vars[schema_id].set(False)
-                widget.pack_forget() # On le retire de l'affichage
+        # On boucle sur les IDs stockés, pas sur le texte des widgets
+        for s_id, chk_widget in self.target_widgets.items():
+            if s_id == ref_id:
+                # C'est le pivot : on le cache
+                self.target_vars[s_id].set(False)
+                chk_widget.pack_forget()
             else:
                 # Ce n'est pas le pivot : on s'assure qu'il est visible
-                widget.pack(anchor="w", padx=5)
+                # winfo_ismapped() permet de savoir s'il est caché (pack_forget) ou non
+                if not chk_widget.winfo_ismapped():
+                    chk_widget.pack(anchor="w", padx=5, fill="x")
     def _on_select_comp(self, event):
-        """Charge les détails du comparatif sélectionné"""
+        """Charge les détails du comparatif sélectionné et coche les cibles."""
         selection = self.list_comp.curselection()
         if not selection:
             return
 
+        # Récupération de l'ID du comparatif sauvegardé
         idx = selection[0]
         self.selected_comp_id = self.comp_ids_map[idx]
+        self.current_comp_id = self.selected_comp_id # On synchronise pour l'enregistrement
 
         conn = get_db_connection()
+        conn.row_factory = sqlite3.Row # Utilisation de Row pour plus de clarté
+        
         # 1. Charger les infos principales
         row = conn.execute("""
-            SELECT c.libelle, c.requete_sql, s.schema, db.libelle 
+            SELECT c.libelle, c.requete_sql, s.schema, db.libelle as db_libelle, c.ref_schema_id
             FROM comparatifs c
             JOIN schemas s ON c.ref_schema_id = s.id
             JOIN DB_conn db ON s.DB_conn_id = db.id
@@ -954,27 +1081,45 @@ class CompareWindow(tk.Toplevel):
         """, (self.selected_comp_id,)).fetchone()
 
         if row:
+            # Remplissage des champs texte
             self.ent_libelle.delete(0, tk.END)
-            self.ent_libelle.insert(0, row[0])
+            self.ent_libelle.insert(0, row['libelle'])
+            
             self.txt_sql.delete("1.0", tk.END)
-            self.txt_sql.insert("1.0", row[1])
-            # On sélectionne le pivot dans la combo
-            pivot_display = f"{row[3]} - {row[2]}"
-            self.cb_ref.set(pivot_display)
-            self._update_target_list()
-            self._update_target_list()
+            self.txt_sql.insert("1.0", row['requete_sql'])
+            
+            # --- Sélection du pivot dans la combo ---
+            # IMPORTANT : Le format doit être identique à _load_ref_schemas (sans emojis)
+            # On vérifie si c'est de la PROD pour remettre le préfixe [PROD] si besoin
+            # Mais le plus simple est de chercher dans self.schema_mapping
+            
+            pivot_id = row['ref_schema_id']
+            # On cherche le nom qui correspond à cet ID dans notre mapping actuel
+            nom_pivot = next((name for name, id_ in self.schema_mapping.items() if id_ == pivot_id), None)
+            
+            if nom_pivot:
+                self.cb_ref.set(nom_pivot)
+            else:
+                # Fallback au cas où le mapping n'est pas encore chargé
+                self.cb_ref.set(f"{row['db_libelle']} - {row['schema']}")
+
         # 2. Cocher les cibles enregistrées
         # On commence par tout décocher
         for var in self.target_vars.values():
             var.set(False)
 
+        # Récupération des IDs des cibles pour ce comparatif
         cibles = conn.execute("SELECT schema_id FROM comparatif_cibles WHERE comp_id = ?", 
                              (self.selected_comp_id,)).fetchall()
         conn.close()
 
+        # On coche les cases correspondantes
         for c in cibles:
-            if c[0] in self.target_vars:
-                self.target_vars[c[0]].set(True)
+            target_id = c['schema_id']
+            if target_id in self.target_vars:
+                self.target_vars[target_id].set(True)
+            else:
+                print(f"Note : Le schéma cible ID {target_id} n'est pas visible avec les filtres actuels.")
 
     def _clear_form(self):
         """Réinitialise tout l'écran"""
@@ -2764,7 +2909,6 @@ class ParamWindow(tk.Toplevel):
             conditions_env = []
             if ids_selectionnes:
                 conditions_env.append(f"o.id_type_serv IN ({','.join(ids_selectionnes)})")
-            
             if filtre_vide:
                 conditions_env.append("o.id_type_serv IS NULL")
 
@@ -2774,10 +2918,8 @@ class ParamWindow(tk.Toplevel):
                 final_query = base_query + " AND 1=0"
 
             final_query += " ORDER BY LOWER(TRIM(o.libelle)) ASC, LOWER(TRIM(o.service)) ASC"
-            
             res = conn.execute(final_query, (t,)).fetchall()
             
-            # Définition du tag pour le fond de la PROD (Rose pâle)
             self.tree_o.tag_configure("prod_bg", background="#fff4f4")
 
             for r in res:
@@ -2786,12 +2928,11 @@ class ParamWindow(tk.Toplevel):
                     instance_to_color_idx[key] = next_color_idx % len(self.colors)
                     next_color_idx += 1
                 
-                # Récupération des tags : Couleur d'instance + Fond si PROD
                 tags = [f"color_{instance_to_color_idx[key]}"]
                 prefix = ""
                 if r["id_type_serv"] == 1:
                     tags.append("prod_bg")
-                    prefix = "🚩 "
+                    prefix = "🚩 " # On garde le visuel pour le tableau
 
                 env_txt = r["env_label"] if r["env_label"] else "N/A"
 
@@ -2799,12 +2940,13 @@ class ParamWindow(tk.Toplevel):
                     r["host"], 
                     r["port"], 
                     r["service"], 
-                    f"{prefix}{r['libelle']}", # Ajout du drapeau sur le libellé
+                    f"{prefix}{r['libelle']}", # Le drapeau est ici uniquement pour l'affichage Treeview
                     env_txt  
                 ), tags=tuple(tags))
                 
                 self.ids_o[item_id] = r["id"]
 
+           
             self.cb_o["values"] = [f"{r['id']} | {r['libelle']} [{r['env_label'] or '?'}]" for r in res]
             conn.close()
             
@@ -2834,7 +2976,6 @@ class ParamWindow(tk.Toplevel):
             conditions_env = []
             if ids_selectionnes:
                 conditions_env.append(f"o.id_type_serv IN ({','.join(ids_selectionnes)})")
-            
             if filtre_vide:
                 conditions_env.append("o.id_type_serv IS NULL")
 
@@ -2844,10 +2985,8 @@ class ParamWindow(tk.Toplevel):
                 final_query = base_query + " AND 1=0"
 
             final_query += " ORDER BY o.libelle, o.service, s.code"
-            
             res = conn.execute(final_query, (t,)).fetchall()
             
-            # Définition du tag pour le fond de la PROD
             self.tree_m.tag_configure("prod_bg", background="#fff4f4")
 
             for r in res:
@@ -2856,17 +2995,16 @@ class ParamWindow(tk.Toplevel):
                     instance_to_color_idx[key] = next_color_idx % len(self.colors)
                     next_color_idx += 1
                 
-                # Récupération des tags et préfixe si serveur parent est en PROD
                 tags = [f"color_{instance_to_color_idx[key]}"]
                 prefix = ""
                 if r["id_type_serv"] == 1:
                     tags.append("prod_bg")
-                    prefix = "🚩 "
+                    prefix = "🚩 " # Uniquement pour le Treeview
                 
                 display_server = f"{r['DB_conn_id']} | {r['libelle']}"
                 
                 self.tree_m.insert("", "end", iid=r["id"], values=(
-                    f"{prefix}{r['code']}", # Ajout du drapeau sur le code schéma
+                    f"{prefix}{r['code']}", 
                     r["schema"], 
                     display_server
                 ), tags=tuple(tags))
@@ -3107,7 +3245,8 @@ class ParamWindow(tk.Toplevel):
             self.host_var.set(v[0])
             self.port_var.set(v[1])
             self.service_var.set(v[2])
-            self.libelle_var.set(v[3])
+            libelle_clean = str(v[3]).replace("🚩 ", "").strip()
+            self.libelle_var.set(libelle_clean)
             
             try:
                 conn = sqlite3.connect(DB_PATH)
@@ -3126,7 +3265,11 @@ class ParamWindow(tk.Toplevel):
         if s: 
             self._current_SCHEMA_id = s[0]
             v = self.tree_m.item(s[0], "values")
-            self.schema_code_var.set(v[0]); self.nom_schema_var.set(v[1]); self.cb_o.set(v[2])
+            code_clean = str(v[0]).replace("🚩 ", "").strip()
+            
+            self.schema_code_var.set(code_clean) # Version propre
+            self.nom_schema_var.set(v[1])
+            self.cb_o.set(v[2])
 
     def _reset_schema_fields(self):
         self._current_SCHEMA_id = None

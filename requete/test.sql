@@ -1,2 +1,2 @@
-update mgart12 set p=1
-where 1= 0
+select * from mgaea
+where rownum<20;

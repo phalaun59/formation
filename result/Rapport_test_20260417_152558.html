@@ -1,0 +1,610 @@
+
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Rapport test</title>
+            <style>
+                body { font-family: 'Segoe UI', Arial, sans-serif; margin: 30px; background-color: #f4f7f6; color: #333; }
+                .container { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 1400px; margin: auto; }
+                h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; margin-top: 0; }
+                .metadata { color: #7f8c8d; font-style: italic; margin-bottom: 25px; line-height: 1.5; }
+                .schema-block { border: 1px solid #ddd; padding: 20px; margin-bottom: 30px; border-radius: 8px; background: #fff; position: relative; }
+                h2 { color: #2980b9; margin-top: 0; font-size: 1.25em; border-left: 5px solid #2980b9; padding-left: 10px; }
+                
+                /* Listes d'IDs */
+                .id-section { margin: 15px 0; }
+                .id-label { font-weight: bold; display: block; margin-bottom: 5px; }
+                .id-list-box { background: #f8f9fa; border: 1px dashed #cbd5e0; padding: 12px; border-radius: 5px; font-family: 'Consolas', monospace; font-size: 0.85em; color: #4a5568; word-wrap: break-word; line-height: 1.6; }
+                
+                /* Tableaux des écarts de valeurs */
+                table { border-collapse: collapse; width: 100%; margin-top: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+                th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; font-size: 0.9em; }
+                th { background-color: #edf2f7; color: #2d3748; text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.05em; }
+                .key-cell { font-weight: bold; color: #2c3e50; background: #f7fafc; width: 20%; }
+                .col-cell { color: #d68910; font-weight: bold; font-family: 'Consolas', monospace; }
+                .val-ref { background-color: #fff5f5; color: #c53030; }
+                .val-tgt { background-color: #f0fff4; color: #276749; font-weight: bold; }
+                
+                .no-diff { color: #38a169; font-weight: bold; padding: 10px; background: #f0fff4; border-radius: 5px; border: 1px solid #c6f6d5; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>📊 Rapport d'écarts : test</h1>
+                <div class="metadata">
+                    <b>Référence (Pivot) :</b> VDR_WELDOM_QUALIF 2 DEUX 9V_T - WSFR408<br>
+                    <b>Généré le :</b> 17/04/2026 15:25:58
+                </div>
+        <div class='schema-block'><h2>Cible : VDR_WELDOM_QUALIF 2 DEUX 9V_T - WIFR617</h2>
+                    <div class="id-section">
+                        <span class="id-label" style="color:#e53e3e;">❌ 1 VCO_DSLOGORI(s) manquant(s) dans cette cible :</span>
+                        <div class="id-list-box">ADEO_GP_MA</div>
+                    </div>
+                    
+                    <div class="id-section">
+                        <span class="id-label" style="color:#3182ce;">➕ 1 VCO_DSLOGORI(s) en trop (absents du pivot) :</span>
+                        <div class="id-list-box">STOCK_EDIT</div>
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>VCO_DSLOGORI</th>
+                                <th>Colonne</th>
+                                <th>Valeur Pivot</th>
+                                <th>Valeur Cible</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                    
+                            <tr>
+                                <td class="key-cell">LITIGE    </td>
+                                <td class="col-cell">VCO_CDRUBORI</td>
+                                <td class="val-ref">PFX_TRFNDD</td>
+                                <td class="val-tgt">COR_LIT</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">LITIGE    </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">NDI</td>
+                                <td class="val-tgt">02</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">LITIGE    </td>
+                                <td class="col-cell">VCO_ZNVLRUBD</td>
+                                <td class="val-ref">ANCF</td>
+                                <td class="val-tgt">QUAL</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">LITIGE    </td>
+                                <td class="col-cell">VCO_FLSELEC</td>
+                                <td class="val-ref">54</td>
+                                <td class="val-tgt">46</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">VTASTOSIT </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">406</td>
+                                <td class="val-tgt">602</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">ADEO_PMAG </td>
+                                <td class="col-cell">VCO_CDRUBORI</td>
+                                <td class="val-ref">INCO</td>
+                                <td class="val-tgt">TYPRCPTMAG</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">ADEO_PMAG </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">CFR</td>
+                                <td class="val-tgt">C</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">ADEO_PMAG </td>
+                                <td class="col-cell">VCO_ZNVLRUBD</td>
+                                <td class="val-ref">CFR</td>
+                                <td class="val-tgt">4</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">ADEO_INT  </td>
+                                <td class="col-cell">VCO_CDRUBORI</td>
+                                <td class="val-ref">T_TYPTIER</td>
+                                <td class="val-tgt">T_NUMCIRLV</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">ADEO_INT  </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">D</td>
+                                <td class="val-tgt">EN</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">ADEO_INT  </td>
+                                <td class="col-cell">VCO_ZNVLRUBD</td>
+                                <td class="val-ref">MA</td>
+                                <td class="val-tgt">1</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">RER       </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">TRAITEMENT_20</td>
+                                <td class="val-tgt">CTRL_MGAPX</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">RER       </td>
+                                <td class="col-cell">VCO_ZNVLRUBD</td>
+                                <td class="val-ref">E5_TRAN_IMPO_RER_POST_TRT.clean_mgwpv</td>
+                                <td class="val-tgt">N</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">E5_BLM    </td>
+                                <td class="col-cell">VCO_CDRUBORI</td>
+                                <td class="val-ref">TYPINTEGBL</td>
+                                <td class="val-tgt">SITCDORIBL</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">E5_BLM    </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">P</td>
+                                <td class="val-tgt">E</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">E5_BLM    </td>
+                                <td class="col-cell">VCO_ZNVLRUBD</td>
+                                <td class="val-ref">4</td>
+                                <td class="val-tgt">39</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">WEBSERV   </td>
+                                <td class="col-cell">VCO_CDRUBORI</td>
+                                <td class="val-ref">ACC_CLIENT</td>
+                                <td class="val-tgt">DSC_PAN</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">WEBSERV   </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">PORT</td>
+                                <td class="val-tgt">DSCPXPRO</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">WEBSERV   </td>
+                                <td class="col-cell">VCO_ZNVLRUBD</td>
+                                <td class="val-ref"></td>
+                                <td class="val-tgt">O</td>
+                            </tr>
+                        </tbody></table></div><div class='schema-block'><h2>Cible : VDR_WELDOM_QUALIF 2 DEUX 9V_T - WIFR656</h2>
+                    <div class="id-section">
+                        <span class="id-label" style="color:#e53e3e;">❌ 1 VCO_DSLOGORI(s) manquant(s) dans cette cible :</span>
+                        <div class="id-list-box">ADEO_GP_MA</div>
+                    </div>
+                    
+                    <div class="id-section">
+                        <span class="id-label" style="color:#3182ce;">➕ 1 VCO_DSLOGORI(s) en trop (absents du pivot) :</span>
+                        <div class="id-list-box">MYCGI     </div>
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>VCO_DSLOGORI</th>
+                                <th>Colonne</th>
+                                <th>Valeur Pivot</th>
+                                <th>Valeur Cible</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                    
+                            <tr>
+                                <td class="key-cell">ADEO      </td>
+                                <td class="col-cell">VCO_CDRUBORI</td>
+                                <td class="val-ref">NIVGAMT0</td>
+                                <td class="val-tgt">ECODIPRI</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">ADEO      </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">Z</td>
+                                <td class="val-tgt">CDETAT</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">ADEO      </td>
+                                <td class="col-cell">VCO_ZNVLRUBD</td>
+                                <td class="val-ref">O</td>
+                                <td class="val-tgt">3,4,5,6,7</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">ADEO      </td>
+                                <td class="col-cell">VCO_FLSELEC</td>
+                                <td class="val-ref">46</td>
+                                <td class="val-tgt">54</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">WEB       </td>
+                                <td class="col-cell">VCO_CDRUBORI</td>
+                                <td class="val-ref">PAN_EMET</td>
+                                <td class="val-tgt">MD_REG</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">WEB       </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">EMETTEUR</td>
+                                <td class="val-tgt">CB</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">WEB       </td>
+                                <td class="col-cell">VCO_ZNVLRUBD</td>
+                                <td class="val-ref">88</td>
+                                <td class="val-tgt">2</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">WEB       </td>
+                                <td class="col-cell">VCO_FLSELEC</td>
+                                <td class="val-ref">46</td>
+                                <td class="val-tgt">54</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">LITIGE    </td>
+                                <td class="col-cell">VCO_CDRUBORI</td>
+                                <td class="val-ref">PFX_TRFNDD</td>
+                                <td class="val-tgt">COR_LIT</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">LITIGE    </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">NDI</td>
+                                <td class="val-tgt">01</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">LITIGE    </td>
+                                <td class="col-cell">VCO_ZNVLRUBD</td>
+                                <td class="val-ref">ANCF</td>
+                                <td class="val-tgt">SAV</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">LITIGE    </td>
+                                <td class="col-cell">VCO_FLSELEC</td>
+                                <td class="val-ref">54</td>
+                                <td class="val-tgt">46</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">VTASTOSIT </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">406</td>
+                                <td class="val-tgt">602</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">ADEO_INT  </td>
+                                <td class="col-cell">VCO_CDRUBORI</td>
+                                <td class="val-ref">T_TYPTIER</td>
+                                <td class="val-tgt">T_NUMCIRLV</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">ADEO_INT  </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">D</td>
+                                <td class="val-tgt">EN</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">ADEO_INT  </td>
+                                <td class="col-cell">VCO_ZNVLRUBD</td>
+                                <td class="val-ref">MA</td>
+                                <td class="val-tgt">1</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">RER       </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">TRAITEMENT_20</td>
+                                <td class="val-tgt">CTRL_MGAPX</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">RER       </td>
+                                <td class="col-cell">VCO_ZNVLRUBD</td>
+                                <td class="val-ref">E5_TRAN_IMPO_RER_POST_TRT.clean_mgwpv</td>
+                                <td class="val-tgt">O</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">E5_BLM    </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">P</td>
+                                <td class="val-tgt">E</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">VTA       </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">BONRESA_FLEDITRECEPT</td>
+                                <td class="val-tgt">STD_TYSITU = 'R'</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">VTA       </td>
+                                <td class="col-cell">VCO_FLSELEC</td>
+                                <td class="val-ref">54</td>
+                                <td class="val-tgt">46</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">WEBSERV   </td>
+                                <td class="col-cell">VCO_CDRUBORI</td>
+                                <td class="val-ref">ACC_CLIENT</td>
+                                <td class="val-tgt">DSC_PAN</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">WEBSERV   </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">PORT</td>
+                                <td class="val-tgt">DSCPXPRO</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">WEBSERV   </td>
+                                <td class="col-cell">VCO_ZNVLRUBD</td>
+                                <td class="val-ref"></td>
+                                <td class="val-tgt">O</td>
+                            </tr>
+                        </tbody></table></div><div class='schema-block'><h2>Cible : VDR_WELDOM_QUALIF 2 DEUX 9V_T - WSFR406</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>VCO_DSLOGORI</th>
+                                <th>Colonne</th>
+                                <th>Valeur Pivot</th>
+                                <th>Valeur Cible</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                    
+                            <tr>
+                                <td class="key-cell">VTASTOSIT </td>
+                                <td class="col-cell">VCO_CDRUBORI</td>
+                                <td class="val-ref">SITMAG</td>
+                                <td class="val-tgt">SITENT</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">VTASTOSIT </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">406</td>
+                                <td class="val-tgt">2</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">FORCASTING</td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">DAA520</td>
+                                <td class="val-tgt">000000</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">FORCASTING</td>
+                                <td class="col-cell">VCO_ZNVLRUBD</td>
+                                <td class="val-ref">Goldenrod</td>
+                                <td class="val-tgt">Black</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">VTA       </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">BONRESA_FLEDITRECEPT</td>
+                                <td class="val-tgt">IMPRESS_DEFAUT</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">WEBSERV   </td>
+                                <td class="col-cell">VCO_CDRUBORI</td>
+                                <td class="val-ref">ACC_CLIENT</td>
+                                <td class="val-tgt">DSC_PAN</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">WEBSERV   </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">PORT</td>
+                                <td class="val-tgt">DSCPXPRO</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">WEBSERV   </td>
+                                <td class="col-cell">VCO_ZNVLRUBD</td>
+                                <td class="val-ref"></td>
+                                <td class="val-tgt">O</td>
+                            </tr>
+                        </tbody></table></div><div class='schema-block'><h2>Cible : VDR_WELDOM_QUALIF 2 DEUX 9V_T - WSFR412</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>VCO_DSLOGORI</th>
+                                <th>Colonne</th>
+                                <th>Valeur Pivot</th>
+                                <th>Valeur Cible</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                    
+                            <tr>
+                                <td class="key-cell">LITIGE    </td>
+                                <td class="col-cell">VCO_CDRUBORI</td>
+                                <td class="val-ref">PFX_TRFNDD</td>
+                                <td class="val-tgt">SIT_LIT</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">LITIGE    </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">NDI</td>
+                                <td class="val-tgt">02</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">LITIGE    </td>
+                                <td class="col-cell">VCO_ZNVLRUBD</td>
+                                <td class="val-ref">ANCF</td>
+                                <td class="val-tgt">10</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">LITIGE    </td>
+                                <td class="col-cell">VCO_FLSELEC</td>
+                                <td class="val-ref">54</td>
+                                <td class="val-tgt">46</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">FORCASTING</td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">DAA520</td>
+                                <td class="val-tgt">000000</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">FORCASTING</td>
+                                <td class="col-cell">VCO_ZNVLRUBD</td>
+                                <td class="val-ref">Goldenrod</td>
+                                <td class="val-tgt">Black</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">VTA       </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">BONRESA_FLEDITRECEPT</td>
+                                <td class="val-tgt">IMPRESS_DEFAUT</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">WEBSERV   </td>
+                                <td class="col-cell">VCO_CDRUBORI</td>
+                                <td class="val-ref">ACC_CLIENT</td>
+                                <td class="val-tgt">DSC_PAN</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">WEBSERV   </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">PORT</td>
+                                <td class="val-tgt">DSCPXPRO</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">WEBSERV   </td>
+                                <td class="col-cell">VCO_ZNVLRUBD</td>
+                                <td class="val-ref"></td>
+                                <td class="val-tgt">O</td>
+                            </tr>
+                        </tbody></table></div><div class='schema-block'><h2>Cible : VDR_WELDOM_QUALIF 2 DEUX 9V_T - WSFR427</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>VCO_DSLOGORI</th>
+                                <th>Colonne</th>
+                                <th>Valeur Pivot</th>
+                                <th>Valeur Cible</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                    
+                            <tr>
+                                <td class="key-cell">LITIGE    </td>
+                                <td class="col-cell">VCO_CDRUBORI</td>
+                                <td class="val-ref">PFX_TRFNDD</td>
+                                <td class="val-tgt">SIT_LIT</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">LITIGE    </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">NDI</td>
+                                <td class="val-tgt">01</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">LITIGE    </td>
+                                <td class="col-cell">VCO_ZNVLRUBD</td>
+                                <td class="val-ref">ANCF</td>
+                                <td class="val-tgt">69</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">LITIGE    </td>
+                                <td class="col-cell">VCO_FLSELEC</td>
+                                <td class="val-ref">54</td>
+                                <td class="val-tgt">46</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">FORCASTING</td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">DAA520</td>
+                                <td class="val-tgt">000000</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">FORCASTING</td>
+                                <td class="col-cell">VCO_ZNVLRUBD</td>
+                                <td class="val-ref">Goldenrod</td>
+                                <td class="val-tgt">Black</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">SIT_LIT   </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">23</td>
+                                <td class="val-tgt">24</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">WEBSERV   </td>
+                                <td class="col-cell">VCO_CDRUBORI</td>
+                                <td class="val-ref">ACC_CLIENT</td>
+                                <td class="val-tgt">DSC_PAN</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">WEBSERV   </td>
+                                <td class="col-cell">VCO_ZNVLRUBO</td>
+                                <td class="val-ref">PORT</td>
+                                <td class="val-tgt">DSCPXPRO</td>
+                            </tr>
+                        
+                            <tr>
+                                <td class="key-cell">WEBSERV   </td>
+                                <td class="col-cell">VCO_ZNVLRUBD</td>
+                                <td class="val-ref"></td>
+                                <td class="val-tgt">O</td>
+                            </tr>
+                        </tbody></table></div></div></body></html>

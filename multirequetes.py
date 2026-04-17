@@ -886,54 +886,46 @@ class CompareWindow(tk.Toplevel):
             return 0
             
     def _run_comparison(self):
-        """Lance l'exécution avec pré-vérification du volume total via COUNT et PARAMETRES."""
+        """Lance l'exécution avec pré-vérification du volume et conversion des types RAW."""
         libelle = self.ent_libelle.get().strip()
         sql_brut = self.txt_sql.get("1.0", tk.END).strip().rstrip(';').strip()
         pivot_name = self.cb_ref.get()
         
-        # 1. RÉCUPÉRATION DES CIBLES COCHÉES
         target_ids = [s_id for s_id, var in self.target_vars.items() if var.get()]
         
         if not sql_brut or not target_ids:
             messagebox.showwarning("Attention", "Veuillez renseigner le SQL et cocher au moins une cible.")
             return
 
-        # Demande du mot de passe
         pwd = simpledialog.askstring("Connexion Oracle", "Entrez le mot de passe :", show='*')
         if not pwd: return
 
-        # 2. RÉCUPÉRATION DE LA LIMITE DANS LA TABLE PARAMETRES
         try:
-            # On récupère la valeur max (ex: 500000)
             max_rows_total = int(self._get_param('MAX_ROWS_COMPARE', 500000))
         except:
             max_rows_total = 500000
 
-        # ==========================================================
-        # PHASE 0 : SCAN DU VOLUME (COUNT) AVANT EXTRACTION
-        # ==========================================================
+        # PHASE 0 : SCAN DU VOLUME
         dialog_check = ProgressDialog(self, title="Vérification du volume...")
         count_sql = f"SELECT COUNT(*) FROM ({sql_brut})"
         total_rows_estimated = 0
         
         ref_id = self.schema_mapping.get(pivot_name)
-        # On vérifie le Pivot + les Cibles
         all_ids_to_check = list(set([ref_id] + target_ids))
         dialog_check.progress["maximum"] = len(all_ids_to_check)
         
         try:
             for i, s_id in enumerate(all_ids_to_check):
                 dialog_check.update("Scan SQL", f"Vérification volume serveur {i+1}...", i+1)
-                self.update() # Force l'UI à rester réactive
+                self.update()
                 total_rows_estimated += self._execute_quick_count(s_id, count_sql, pwd)
             
             dialog_check.destroy()
 
-            # --- ALERTE SI DÉPASSEMENT DU SEUIL ---
             if total_rows_estimated > max_rows_total:
                 msg = (f"VOLUME IMPORTANT : {total_rows_estimated:,} lignes détectées.\n"
                        f"Le seuil paramétré est de {max_rows_total:,}.\n\n"
-                       "Voulez-vous continuer l'extraction ?\n(Risque de saturation mémoire)")
+                       "Voulez-vous continuer l'extraction ?")
                 if not messagebox.askyesno("Alerte Performance", msg):
                     return
         except Exception as e:
@@ -941,9 +933,7 @@ class CompareWindow(tk.Toplevel):
             messagebox.showerror("Erreur Scan", f"Impossible d'estimer le volume : {e}")
             return
 
-        # ==========================================================
-        # PHASE 1 & 2 : EXTRACTION ET COMPARAISON RÉELLE
-        # ==========================================================
+        # PHASE 1 & 2 : EXTRACTION ET COMPARAISON
         error_count = 0
         max_errors = 3
         all_diffs = {}
@@ -960,10 +950,18 @@ class CompareWindow(tk.Toplevel):
             
             df_pivot = self._get_dataframe(ref_id, sql_brut, pwd)
             if df_pivot is not None and not df_pivot.empty:
+                
+                # --- CORRECTIF TYPES RAW (BYTES -> HEX) ---
+                for col in df_pivot.columns:
+                    if df_pivot[col].dtype == object:
+                        first_val = df_pivot[col].dropna().iloc[0] if not df_pivot[col].dropna().empty else None
+                        if isinstance(first_val, bytes):
+                            df_pivot[col] = df_pivot[col].apply(lambda x: x.hex().upper() if isinstance(x, bytes) else x)
+                # ------------------------------------------
+
                 pk_col = df_pivot.columns[0]
                 df_pivot_idx = df_pivot.set_index(pk_col)
                 self._save_log_file(pivot_name, df_pivot)
-                # Libération mémoire après log si nécessaire
                 del df_pivot
                 gc.collect() 
             else:
@@ -983,16 +981,22 @@ class CompareWindow(tk.Toplevel):
                 try:
                     df_target = self._get_dataframe(s_id, sql_brut, pwd)
                     if df_target is not None and not df_target.empty:
+                        
+                        # --- CORRECTIF TYPES RAW (BYTES -> HEX) ---
+                        for col in df_target.columns:
+                            if df_target[col].dtype == object:
+                                first_val = df_target[col].dropna().iloc[0] if not df_target[col].dropna().empty else None
+                                if isinstance(first_val, bytes):
+                                    df_target[col] = df_target[col].apply(lambda x: x.hex().upper() if isinstance(x, bytes) else x)
+                        # ------------------------------------------
+
                         self._save_log_file(t_name, df_target)
                         
-                        # Comparaison avec le Pivot
                         pk_col = df_target.columns[0]
                         df_target_idx = df_target.set_index(pk_col)
                         
-                        # Appel au calcul des différences
                         all_diffs[t_name] = self._compare_dataframes(df_pivot_idx, df_target_idx)
                         
-                        # Nettoyage mémoire immédiat
                         del df_target
                         del df_target_idx
                         gc.collect()
@@ -1004,7 +1008,6 @@ class CompareWindow(tk.Toplevel):
                     all_diffs[t_name] = {"error": str(e_target)}
                     print(f"Erreur sur {t_name}: {e_target}")
 
-            # --- FINALISATION ---
             if dialog.winfo_exists(): dialog.destroy()
             
             if error_count >= max_errors:
@@ -1242,9 +1245,7 @@ class ProbeEngine:
     def _get_probe_mapping(self, db_filter, pack_id):
         """Récupère les cibles et démultiplie les sondes par schéma"""
         conn = self.get_sqlite_conn()
-        
-        # Le problème vient souvent de l'INNER JOIN sur reporting_items
-        # Assure-toi que tes sondes sont bien rattachées au pack dans cette table.
+
         query = """
             SELECT 
                 s.nom_sonde as libelle, 
@@ -1300,7 +1301,7 @@ class ProbeEngine:
             conn.close()
 
     def _execute_probe(self, target, pwd):
-        """DÉFINITION : Reçoit target et pwd (2 arguments au total)"""
+        """DÉFINITION : Reçoit target et pwd, convertit les types RAW/Binary en Hex."""
         data = None
         error = None
         
@@ -1315,6 +1316,22 @@ class ProbeEngine:
                 data = self._run_sqlite(target)
             else:
                 error = f"SGBD {target['type_db']} non supporté."
+            
+            # ==========================================================
+            # CORRECTIF POUR LES TYPES RAW / BINAIRES (BYTES)
+            # ==========================================================
+            if data is not None and hasattr(data, 'columns'): # On vérifie que c'est un DataFrame
+                for col in data.columns:
+                    # On check si la colonne est de type objet (contient potentiellement des bytes)
+                    if data[col].dtype == object:
+                        # On récupère la première valeur non nulle pour tester le type
+                        first_val = data[col].dropna().iloc[0] if not data[col].dropna().empty else None
+                        
+                        if isinstance(first_val, bytes):
+                            # Conversion Hexadécimale (b'T' -> '54')
+                            data[col] = data[col].apply(lambda x: x.hex().upper() if isinstance(x, bytes) else x)
+            # ==========================================================
+
         except Exception as e:
             error = str(e)
 
@@ -1331,7 +1348,6 @@ class ProbeEngine:
             "error": error,
             "requete_sql": target['requete_sql']
         }
-
     def _run_oracle(self, t, schema_as_user, pwd):
         import oracledb
         
@@ -3516,87 +3532,92 @@ class SchemaFilterPopup(tk.Toplevel):
         super().__init__(master)
         self.master = master
         self.title("Exceptions de Schémas")
-        self.geometry("400x500")
-        self.transient(master) # Garde la fenêtre au-dessus de la principale
-        self.grab_set()        # Empêche de cliquer derrière tant qu'elle est ouverte
+        self.geometry("450x600")
+        self.transient(master)
+        self.grab_set()
         
-        self.schema_list = schema_list
+        self.schema_list = sorted(schema_list)
+        self.check_vars = {} 
+        self.all_selected = False 
         self._build_ui()
 
     def _build_ui(self):
-        # --- 1. ZONE DES BOUTONS (On la place en PREMIER en bas) ---
+        # --- 1. ZONE DES BOUTONS FIXES (Bas) ---
         btn_frame = ttk.Frame(self)
         btn_frame.pack(side="bottom", fill="x", pady=10)
 
-        btn_valid = ttk.Button(
-            btn_frame, 
-            text="✅ Valider et Fermer", 
-            command=self.destroy 
-        )
-        btn_valid.pack(side="right", padx=10)
+        # On utilise maintenant _validate au lieu de destroy directement
+        ttk.Button(btn_frame, text="✅ Valider les modifications", command=self._validate).pack(side="right", padx=10)
+        ttk.Button(btn_frame, text="Annuler", command=self.destroy).pack(side="right", padx=5)
 
-        btn_cancel = ttk.Button(
-            btn_frame, 
-            text="Annuler", 
-            command=self.destroy
-        )
-        btn_cancel.pack(side="right", padx=5)
+        # --- 2. ZONE DE DÉFILEMENT (Canvas + Scrollbar) ---
+        container = ttk.Frame(self)
+        container.pack(fill="both", expand=True, padx=5, pady=5)
 
-        # --- 2. ZONE DE DÉFILEMENT (Canvas) ---
-        canvas = tk.Canvas(self, borderwidth=0, highlightthickness=0)
-        scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
+        self.canvas = tk.Canvas(container, borderwidth=0, highlightthickness=0)
+        scrollbar = ttk.Scrollbar(container, orient="vertical", command=self.canvas.yview)
         
-        self.scroll_frame = ttk.Frame(canvas)
-        
+        self.scroll_frame = ttk.Frame(self.canvas)
+
         self.scroll_frame.bind(
             "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         )
 
-        canvas.create_window((0, 0), window=self.scroll_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        # On pack le canvas APRES les boutons pour qu'il prenne l'espace RESTANT
-        canvas.pack(side="left", fill="both", expand=True, padx=5, pady=5)
+        self.canvas_window = self.canvas.create_window((0, 0), window=self.scroll_frame, anchor="nw")
+        
+        # Ajustement automatique de la largeur
+        self.canvas.bind('<Configure>', lambda e: self.canvas.itemconfig(self.canvas_window, width=e.width))
+        
+        self.canvas.configure(yscrollcommand=scrollbar.set)
+        self.canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
-        # --- 3. CONTENU (Titre + Checkbuttons) ---
-        ttk.Label(self.scroll_frame, text="Cochez les schémas à IGNORER :", 
-                  font=("Helvetica", 10, "bold")).pack(anchor="w", pady=5)
-        
-        ttk.Separator(self.scroll_frame, orient="horizontal").pack(fill="x", pady=5)
+        # Support molette
+        self.canvas.bind_all("<MouseWheel>", lambda e: self.canvas.yview_scroll(int(-1*(e.delta/120)), "units"))
 
+        # --- 3. CONTENU INTERNE ---
+        top_bar = ttk.Frame(self.scroll_frame)
+        top_bar.pack(fill="x", padx=5, pady=5)
+
+        # Bouton Toggle unique
+        self.btn_toggle = ttk.Button(top_bar, text="Tout cocher / Décocher", command=self._toggle_all)
+        self.btn_toggle.pack(side="left", padx=5)
+
+        ttk.Separator(self.scroll_frame, orient="horizontal").pack(fill="x", pady=10)
+
+        # Génération des Checkbuttons
         for s_name in self.schema_list:
+            # On vérifie si déjà exclu dans master
             is_excluded = s_name in self.master.excluded_schemas
             var = tk.BooleanVar(value=is_excluded)
+            self.check_vars[s_name] = var 
             
             chk = ttk.Checkbutton(
                 self.scroll_frame, 
                 text=s_name, 
-                variable=var,
-                command=lambda n=s_name, v=var: self._toggle_exception(n, v)
+                variable=var
             )
-            chk.pack(anchor="w", padx=10, pady=2)
-        
-    def _toggle_exception(self, name, var):
-        """Ajoute ou retire le schéma du Set d'exclusions de la classe principale"""
-        if var.get():
-            self.master.excluded_schemas.add(name)
-        else:
-            if name in self.master.excluded_schemas:
-                self.master.excluded_schemas.remove(name)
+            chk.pack(anchor="w", padx=15, pady=2)
+
+    def _toggle_all(self):
+        """Alterne entre tout cocher et tout décocher visuellement"""
+        self.all_selected = not self.all_selected
+        for var in self.check_vars.values():
+            var.set(self.all_selected)
+
+    def _validate(self):
+        """Action finale : on met à jour le Set de la classe master et on ferme"""
+        # On vide et on remplit le Set des exclusions selon les cases cochées
+        self.master.excluded_schemas.clear()
+        for name, var in self.check_vars.items():
+            if var.get():
+                self.master.excluded_schemas.add(name)
         
         # Mise à jour du compteur sur le bouton de la fenêtre principale
         count = len(self.master.excluded_schemas)
         self.master.btn_filter.config(text=f"Gérer les Exceptions de Schémas ({count})")
-
-    def _validate(self):
-        self.result = {s for s, v in self.vars.items() if not v.get()}
-        self.destroy()
         
-    def _validate(self):
-        # On récupère ceux qui sont DECOCHÉS pour l'exclusion
-        self.result = {s for s, v in self.vars.items() if not v.get()}
         self.destroy()
                   
 # --- APPLICATION PRINCIPALE ---
@@ -4041,10 +4062,8 @@ class MultiRequetesApp(tk.Tk):
         suffix_str = f"{custom_suffix}_" if custom_suffix else ""
         should_concat = self.concat_logs_var.get()
         
-        # --- NOUVEAU : GESTION DU SEUIL D'ERREURS ---
         error_count = 0
         max_errors = 3
-        # --------------------------------------------
 
         # --- 2. PRÉPARATION DU DOSSIER ---
         ts_full = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -4059,12 +4078,10 @@ class MultiRequetesApp(tk.Tk):
         self._log(f"🚀 Lancement sur {len(targets)} cible(s)...")
         
         for t in targets:
-            # --- NOUVEAU : VÉRIFICATION DU SEUIL ---
             if error_count >= max_errors:
-                self._log(f"🛑 ARRÊT DE SÉCURITÉ : {max_errors} erreurs atteintes. On stoppe l'exécution.", "ERROR")
-                messagebox.showerror("Arrêt critique", f"L'exécution a été interrompue après {max_errors} erreurs.\nVérifiez les logs pour plus de détails.")
+                self._log(f"🛑 ARRÊT DE SÉCURITÉ : {max_errors} erreurs atteintes.", "ERROR")
+                messagebox.showerror("Arrêt critique", f"L'exécution a été interrompue après {max_errors} erreurs.")
                 break
-            # ---------------------------------------
 
             conn = None
             schema_name = t.get('schema', 'Base')
@@ -4082,7 +4099,22 @@ class MultiRequetesApp(tk.Tk):
                     if cursor.description:
                         colnames = [d[0] for d in cursor.description]
                         full_colnames = ["SOURCE_SCHEMA"] + colnames 
-                        rows = cursor.fetchall()
+                        
+                        # Récupération des lignes brutes
+                        raw_rows = cursor.fetchall()
+                        
+                        # --- NETTOYAGE DES TYPES RAW (BYTES -> HEX) ---
+                        # On transforme les objets 'bytes' en texte Hexadécimal
+                        rows = []
+                        for row in raw_rows:
+                            clean_row = []
+                            for cell in row:
+                                if isinstance(cell, bytes):
+                                    clean_row.append(cell.hex().upper())
+                                else:
+                                    clean_row.append(cell)
+                            rows.append(clean_row)
+                        # ----------------------------------------------
                         
                         if should_concat:
                             with open(master_csv_path, 'a', newline='', encoding='utf-8') as f:
@@ -4115,9 +4147,7 @@ class MultiRequetesApp(tk.Tk):
                     pass
 
             except Exception as e:
-                # --- NOUVEAU : INCRÉMENTATION DU COMPTEUR ---
                 error_count += 1
-                # --------------------------------------------
                 err = f"❌ ERREUR sur {schema_name} : {str(e)}"
                 self._log(err, "ERROR")
                 log_entries.append(err)
@@ -4135,7 +4165,6 @@ class MultiRequetesApp(tk.Tk):
                 with open(log_file, "w", encoding="utf-8") as f:
                     f.write(log_content)
 
-        # Message de fin adapté si arrêt précoce
         if error_count < max_errors:
             self._log("🏁 Exécution terminée.")
             messagebox.showinfo("Succès", f"Les résultats sont dans le dossier :\n{sub_folder_name}")
